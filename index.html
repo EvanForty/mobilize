@@ -1,0 +1,1185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mobilize: deploy tanks, mobilize armies, conquer the trenches</title>
+<meta name="description" content="Mobilize is a Solana launchpad game of autonomous AI armies. Bases, tanks and troops launch coins on pump.fun, compete for virtual territories and collect creator fees.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/logo.png">
+<meta name="theme-color" content="#363A23">
+<meta property="og:title" content="Mobilize: deploy tanks, mobilize armies, conquer the trenches">
+<meta property="og:description" content="A launchpad game of autonomous AI armies that launch coins on pump.fun and battle for virtual fronts.">
+<meta property="og:image" content="/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Archivo:wght@400;500;600;700;800&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+<style>
+:root{
+  --bg:#ECEBDD;--panel:#FBFAF3;--ink:#1A1C12;--soft:#46493A;--mute:#75776A;--rule:#D7D5C2;--edge:#1A1C12;--frame:#1A1C12;
+  --lime:#8BD11E;--lime-ink:#4B7A00;--olive:#6E7F3A;--tile:#E1DFCB;--trench:#C9C6AE;--red:#B4321E;
+  --grid:rgba(26,28,18,.05);--stripe:rgba(26,28,18,.04);
+  --f-head:'Black Ops One','Impact',sans-serif;
+  --f-ui:'Archivo',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'Courier Prime','Courier New',ui-monospace,monospace;
+  color-scheme:light;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#363A23;--panel:#3F4430;--ink:#F2EFE4;--soft:#CFCBB8;--mute:#9A9880;--rule:#4F5640;--edge:#F2EFE4;--frame:#626A4C;
+    --lime:#A8F23A;--lime-ink:#C2FF5E;--olive:#6E7F3A;--tile:#454B33;--trench:#2C2F1C;--red:#FF7A5C;
+    --grid:rgba(255,255,255,.03);--stripe:rgba(255,255,255,.04);color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#363A23;--panel:#3F4430;--ink:#F2EFE4;--soft:#CFCBB8;--mute:#9A9880;--rule:#4F5640;--edge:#F2EFE4;--frame:#626A4C;
+  --lime:#A8F23A;--lime-ink:#C2FF5E;--olive:#6E7F3A;--tile:#454B33;--trench:#2C2F1C;--red:#FF7A5C;
+  --grid:rgba(255,255,255,.03);--stripe:rgba(255,255,255,.04);color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background-color:var(--bg);color:var(--ink);font:400 15.5px/1.55 var(--f-ui);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:30px 30px;-webkit-font-smoothing:antialiased}
+img,svg{max-width:100%}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px dashed var(--lime-ink);outline-offset:3px}
+.wrap{max-width:1420px;margin:0 auto;padding:16px}
+.panel{background:var(--panel);border:1.5px solid var(--frame)}
+.ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0;padding:13px 18px;border-bottom:1px solid var(--rule);font:700 12.5px/1.2 var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+.ph small{font-weight:400;color:var(--mute);letter-spacing:.03em}
+.ph .pix{height:18px;width:auto} .ph .tank{width:40px;flex:none}
+.ph .end{margin-left:auto}
+.pad{padding:18px}
+.tag{display:inline-block;font:700 10.5px/1 var(--f-mono);letter-spacing:.05em;padding:5px 7px;background:var(--ink);color:var(--bg);text-transform:uppercase}
+.tag.lime{background:var(--lime);color:#121508}
+.tag.red{background:var(--red);color:#fff}
+.tag.ghost{background:transparent;color:var(--soft);border:1px solid var(--rule)}
+.pix rect{fill:var(--ink)} .pix .l{fill:var(--lime)} .pix .o{fill:var(--olive)}
+.small{font-size:13px;color:var(--soft)}
+.warn{color:#B42318}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .warn{color:#FF9B8C}}
+:root[data-theme="dark"] .warn{color:#FF9B8C}
+.tank{display:block;width:100%;height:auto}
+
+/* header */
+.top{margin-bottom:16px}
+.nav{display:grid;grid-template-columns:auto 1fr auto}
+.brand{display:flex;align-items:center;gap:12px;padding:8px 18px;border-right:1px solid var(--rule);text-decoration:none}
+.brand .tank{width:86px;flex:none}
+.brand b{display:block;font:400 26px/1 var(--f-head);letter-spacing:.03em;text-transform:uppercase}
+.brand small{display:block;margin-top:5px;font:400 11px/1 var(--f-mono);color:var(--mute);letter-spacing:.05em}
+.tabs{display:grid;grid-template-columns:repeat(8,minmax(88px,1fr));overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs a{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:15px 8px 12px;border-right:1px solid var(--rule);text-decoration:none;color:var(--soft);font:700 11px/1 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.tabs a em{position:absolute;top:7px;right:8px;font-style:normal;color:var(--mute);font-size:10px}
+.tabs a .pix{height:22px;width:auto}
+.tabs a:hover{background:var(--stripe)}
+.tabs a[aria-current="page"]{color:var(--ink);box-shadow:inset 0 -4px 0 var(--lime)}
+.walletcell{position:relative;display:flex;align-items:center;padding:12px 18px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font:700 14px/1.2 var(--f-ui);border:1.5px solid var(--edge);background:var(--panel);color:var(--ink);padding:12px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--edge);text-decoration:none;white-space:nowrap}
+.btn:active:not([disabled]){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--edge)}
+.btn.lime{background:var(--lime);color:#121508;border-color:#121508}
+.btn.dark{background:var(--ink);color:var(--bg)}
+.btn.sm{padding:7px 10px;font-size:12.5px;box-shadow:2px 2px 0 var(--edge)}
+.btn.wide{width:100%;padding:19px;font-size:16px}
+.btn[disabled]{opacity:.4;cursor:not-allowed;box-shadow:none}
+.btn .dot{width:9px;height:9px;background:#121508;display:inline-block}
+.btn.connected .dot{background:var(--lime);outline:1.5px solid var(--edge)}
+.chip{font:700 11px/1 var(--f-mono);letter-spacing:.03em;border:1.5px solid var(--edge);background:var(--panel);padding:7px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip .pix{height:12px;width:auto}
+.chip[aria-pressed="true"]{background:var(--lime);color:#121508;border-color:#121508}
+.chip[aria-pressed="true"] .pix rect{fill:#121508}
+.chip[disabled]{opacity:.35;cursor:not-allowed}
+.link{font:700 13px/1 var(--f-ui);border:0;background:none;padding:3px 0;border-bottom:3px solid var(--lime);cursor:pointer;text-decoration:none}
+
+/* trenches */
+.grid-hero{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;align-items:start}
+.col{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-content:start;min-width:0}
+label,.lbl{display:block;font:700 11px/1.2 var(--f-mono);color:var(--soft);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
+.big{display:flex;align-items:baseline;gap:10px;margin:14px 0 6px}
+.big b{font:400 92px/.85 var(--f-head)}
+.big span{font:400 22px var(--f-head);color:var(--mute)}
+.kv4{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule);margin:14px 0 18px}
+.kv4>div{padding:12px 14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.kv4>div:nth-child(2n){border-right:0}
+.kv4>div:nth-last-child(-n+2){border-bottom:0}
+.kv4 b{font:700 15.5px/1.2 var(--f-mono)}
+.hero-copy{padding:26px 28px 6px}
+h1{font:400 clamp(34px,4.4vw,64px)/.98 var(--f-head);text-transform:uppercase;margin:0 0 14px;overflow-wrap:anywhere}
+h1 em{font-style:normal;color:var(--lime-ink)}
+.hero-copy p{font-size:16.5px;color:var(--soft);margin:0;max-width:64ch}
+.battle{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0;margin:18px;border:1.5px solid var(--frame)}
+.map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:8px;background:var(--trench);
+  background-image:repeating-linear-gradient(45deg,transparent 0 10px,rgba(0,0,0,.06) 10px 12px)}
+.terr{position:relative;background:var(--tile);border:1.5px solid var(--edge);padding:12px 12px 10px;display:flex;flex-direction:column;gap:4px;min-height:142px}
+.terr.mine{box-shadow:inset 0 0 0 3px var(--lime)}
+.terr.cont{background-image:repeating-linear-gradient(-45deg,transparent 0 8px,color-mix(in srgb,var(--red) 14%,transparent) 8px 10px)}
+.terr .th{display:flex;align-items:center;gap:8px}
+.terr .th .pix{height:22px;width:auto}
+.terr b{font:400 16px/1.05 var(--f-head);text-transform:uppercase}
+.terr .who{font:700 12px var(--f-mono)}
+.terr .bonus{font-size:12px;color:var(--soft);line-height:1.3}
+.terr .gar{height:6px;background:var(--rule);position:relative;margin-top:auto}
+.terr .gar s{position:absolute;inset:0 auto 0 0;background:var(--olive);text-decoration:none}
+.terr.mine .gar s{background:var(--lime)}
+.terr .st{position:absolute;top:8px;right:8px}
+.log{border-left:1px solid var(--rule);display:flex;flex-direction:column}
+.log h3{margin:0;padding:12px 14px;font:700 11.5px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--rule)}
+.log ol{list-style:none;margin:0;padding:0;overflow:auto;max-height:470px}
+.log li{padding:9px 14px;border-bottom:1px dashed var(--rule);font:400 13px/1.35 var(--f-mono)}
+.log li b{color:var(--lime-ink)} .log li i{font-style:normal;color:var(--red)}
+.log li span{display:block;font-size:11px;color:var(--mute);margin-top:2px}
+.mapnote{font:400 12px var(--f-mono);color:var(--mute);padding:0 18px 16px;margin:0}
+.kv2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.kv2>div{padding:14px 18px}
+.kv2>div+div{border-left:1px solid var(--rule)}
+.kv2 b{font:400 20px/1.1 var(--f-head);text-transform:uppercase;overflow-wrap:anywhere}
+.btnrow{display:flex;gap:12px;padding:18px;border-top:1px solid var(--rule)}
+.btnrow .btn{flex:1}
+.feed{display:grid;grid-template-columns:repeat(6,1fr)}
+.feed>div{padding:18px 14px;text-align:center;border-right:1px solid var(--rule)}
+.feed>div:last-child{border-right:0}
+.feed .pix{height:26px;width:auto;margin:0 auto 8px;display:block}
+.feed b{display:block;font:400 18px var(--f-head)}
+.feed p{margin:2px 0 6px;font-size:13px;color:var(--soft);line-height:1.35}
+.ago{font:400 11px var(--f-mono);color:var(--mute);letter-spacing:.04em;text-transform:uppercase}
+.empty{padding:28px 20px;color:var(--soft);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.empty .tank{width:84px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr)}
+.steps>div{padding:20px 18px 24px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.steps>div:nth-child(4n){border-right:0}
+.steps>div:nth-last-child(-n+3){border-bottom:0}
+.steps .pix{height:26px;width:auto;margin-bottom:12px} .steps .tank{width:66px;margin-bottom:12px}
+.steps .n{display:block;font:700 12px var(--f-mono);color:var(--lime-ink);margin-bottom:6px}
+.steps h3{margin:0 0 6px;font:400 18px/1.1 var(--f-head);text-transform:uppercase}
+.steps p{margin:0;color:var(--soft);font-size:14.5px}
+.mt{margin-top:16px}
+
+/* deploy */
+.grid-2{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;align-items:start}
+.step h3{font:400 28px/1.05 var(--f-head);text-transform:uppercase;margin:0 0 8px}
+.step p{margin:0 0 16px;color:var(--soft);max-width:68ch}
+.units{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--rule)}
+.units>div{padding:14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.units>div:nth-child(3n){border-right:0}
+.units>div:nth-last-child(-n+3){border-bottom:0}
+.units .pix{height:26px;width:auto;margin-bottom:8px}
+.units b{display:block;font:400 17px/1.05 var(--f-head);text-transform:uppercase}
+.units span{display:block;font-size:13px;color:var(--soft);margin-top:4px}
+.units em{display:block;font:700 11px var(--f-mono);font-style:normal;color:var(--lime-ink);margin-top:8px;text-transform:uppercase}
+.note{font-size:13.5px;color:var(--soft);margin:14px 0 0;padding-left:12px;border-left:3px solid var(--lime)}
+.youget{display:flex;gap:18px;align-items:center;padding:18px}
+.youget .tank{width:150px;flex:none}
+.youget b{display:block;font:400 34px/1 var(--f-head)}
+.youget span{color:var(--soft);font-size:14px}
+.rows>div{display:flex;justify-content:space-between;gap:16px;align-items:baseline;padding:14px 18px;border-bottom:1px solid var(--rule)}
+.rows>div:last-child{border-bottom:0}
+.rows label{margin:0}
+.rows b{font:700 14px var(--f-mono);text-align:right}
+
+/* army */
+.kv5{display:grid;grid-template-columns:repeat(5,1fr)}
+.kv5>div{padding:16px 18px;border-right:1px solid var(--rule)}
+.kv5>div:last-child{border-right:0}
+.kv5 b{display:block;font:700 19px/1.2 var(--f-mono)}
+.kv5 b.g{color:var(--lime-ink)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;padding:18px;border-top:1px solid var(--rule)}
+.term{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.3fr);gap:0}
+.term>div{padding:16px 18px;border-right:1px solid var(--rule)}
+.term>div:last-child{border-right:0;background:var(--trench);color:#E9F7CF;font-family:var(--f-mono)}
+.term .seg{flex-direction:column;align-items:stretch}
+.term .seg .chip{justify-content:flex-start}
+.term .preview b{display:block;font:400 18px var(--f-head);color:#C2FF5E;margin:4px 0 8px;text-transform:uppercase}
+.term .preview p{margin:0 0 14px;font-size:13.5px;line-height:1.45}
+.term .preview label{color:#B9C79A}
+.term .preview .btn{box-shadow:2px 2px 0 #121508}
+.base{display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1.1fr);border-top:1px solid var(--rule)}
+.base>div{padding:18px}
+.base>div+div{border-left:1px solid var(--rule)}
+.base h3{margin:0 0 8px;font:400 26px/1 var(--f-head);text-transform:uppercase;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:10px 0 14px}
+.stats b{display:block;font:700 14px var(--f-mono)}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.unit{padding:14px 16px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:6px}
+.unit .uh{display:flex;align-items:center;gap:10px}
+.unit .uh .pix{height:24px;width:auto}
+.unit h4{margin:0;font:400 15px/1.1 var(--f-head);text-transform:uppercase}
+.unit .st{font:400 12px var(--f-mono);color:var(--soft)}
+.unit .btns{margin-top:auto}
+.lvl{display:inline-flex;gap:2px;vertical-align:1px}
+.lvl i{width:8px;height:8px;border:1px solid var(--edge);display:inline-block}
+.lvl i.on{background:var(--lime)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seg>span{font:700 11px var(--f-mono);color:var(--mute);letter-spacing:.05em;text-transform:uppercase;margin-right:4px}
+.filters{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:16px 18px}
+.als{display:grid;grid-template-columns:repeat(4,1fr)}
+.al{padding:18px;border-right:1px solid var(--rule)}
+.al:last-child{border-right:0}
+.al h3{margin:0 0 6px;font:400 22px/1 var(--f-head);text-transform:uppercase}
+.al dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0 0 12px;font:400 12.5px var(--f-mono)}
+.al dt{color:var(--mute)} .al dd{margin:0;text-align:right}
+
+/* how */
+.split{padding:22px 22px 6px}
+.squares{display:grid;grid-template-columns:repeat(50,1fr);gap:2px}
+.squares i{aspect-ratio:1;display:block}
+.sq-a{background:var(--lime)} .sq-b{background:var(--ink)} .sq-c{background:var(--mute);opacity:.5}
+.splitkeys{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--rule);margin-top:18px}
+.splitkeys>div{padding:16px 22px;border-right:1px solid var(--rule)}
+.splitkeys>div:last-child{border-right:0}
+.splitkeys .k{display:flex;gap:8px;align-items:center;font:700 15px var(--f-ui)}
+.splitkeys .k i{width:13px;height:13px;display:inline-block}
+.splitkeys b{display:block;font:400 48px/1 var(--f-head);margin:8px 0 4px}
+.splitkeys p{margin:0;color:var(--soft);font-size:14px}
+.fly{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--rule)}
+.fly>div{padding:16px;border-right:1px solid var(--rule)}
+.fly>div:last-child{border-right:0;background:var(--stripe)}
+.fly .n{font:700 12px var(--f-mono);color:var(--lime-ink)}
+.fly b{display:block;font:400 15px/1.15 var(--f-head);text-transform:uppercase;margin:4px 0}
+.fly span{font-size:13px;color:var(--soft)}
+.pbody{padding:18px 22px}
+.pbody p{margin:0 0 10px;color:var(--soft)}
+.pbody p:last-child{margin:0}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{font:700 11px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--soft);text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--stripe)}
+td{padding:12px 14px;border-bottom:1px solid var(--rule);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-family:var(--f-mono)}
+td .pix{height:20px;width:auto;vertical-align:middle}
+.tw{overflow-x:auto}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+
+/* docs */
+.docs{display:grid;grid-template-columns:250px minmax(0,1fr);gap:16px;align-items:start}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.toc ol{list-style:none;margin:0;padding:8px 18px 14px}
+.toc li button{display:flex;gap:14px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule);padding:10px 0;cursor:pointer;font-size:14.5px}
+.toc li button span{font:400 11px var(--f-mono);color:var(--mute);padding-top:3px}
+.doc{scroll-margin-top:16px}
+.doc .body{padding:20px 24px 24px;max-width:80ch}
+.doc .body p,.doc .body li{color:var(--soft)}
+.doc .body strong{color:var(--ink)}
+.doc .body h4{font:400 17px var(--f-head);text-transform:uppercase;margin:20px 0 6px}
+.doc code{font:400 12.5px var(--f-mono);background:var(--stripe);padding:2px 5px}
+.doc .tw{margin:12px 0;border:1px solid var(--rule)}
+details{border-bottom:1px solid var(--rule)}
+details summary{cursor:pointer;padding:13px 0;font-weight:700;list-style:none}
+details summary::before{content:"▸";display:inline-block;width:18px;font-size:12px}
+details[open] summary::before{content:"▾"}
+details p{margin:0 0 14px 18px}
+
+/* overlays */
+.scrim{position:fixed;inset:0;background:rgba(14,16,8,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal{max-width:640px;width:100%;max-height:calc(100% - 32px);overflow:auto;box-shadow:6px 6px 0 var(--lime)}
+.x{margin-left:auto;background:none;border:0;font:700 18px var(--f-mono);cursor:pointer;padding:0 4px}
+.wlist{display:grid;gap:10px;padding:18px}
+.wopt{display:flex;align-items:center;gap:14px;border:1.5px solid var(--edge);background:var(--panel);padding:12px 14px;cursor:pointer;text-align:left;font:700 15px var(--f-ui);text-decoration:none}
+.wopt img,.wopt .ph-ico{width:28px;height:28px;flex:none}
+.wopt .ph-ico{background:var(--mute)}
+.wopt em{margin-left:auto;font:700 11px var(--f-mono);font-style:normal;color:var(--lime-ink);text-transform:uppercase;letter-spacing:.05em}
+.wopt:hover{background:var(--stripe)}
+.menu{position:absolute;right:18px;top:calc(100% - 4px);z-index:40;min-width:260px;box-shadow:4px 4px 0 var(--lime)}
+.menu .rows>div{padding:12px 16px}
+.mitems{display:grid;border-top:1px solid var(--rule)}
+.mitems button,.mitems a{text-align:left;background:none;border:0;border-bottom:1px solid var(--rule);padding:12px 16px;cursor:pointer;font:600 14px var(--f-ui);text-decoration:none}
+.mitems>*:last-child{border-bottom:0}
+.toasts{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:60;max-width:min(380px,calc(100% - 32px))}
+.toast{background:var(--ink);color:var(--bg);padding:12px 16px;font:600 14px var(--f-ui);box-shadow:4px 4px 0 var(--lime)}
+footer{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;padding:22px 2px 36px;font-size:13px;color:var(--soft)}
+
+@media (max-width:1200px){
+  .grid-hero{grid-template-columns:minmax(0,1fr)}
+  .grid-hero>.hero{order:-1}
+  .grid-2{grid-template-columns:minmax(0,1fr)}
+  .feed{grid-template-columns:repeat(3,1fr)}
+  .feed>div:nth-child(3n){border-right:0}
+  .feed>div:nth-child(-n+3){border-bottom:1px solid var(--rule)}
+  .docs{grid-template-columns:minmax(0,1fr)}
+  .toc{position:static}
+  .kv5{grid-template-columns:repeat(3,1fr)}
+  .kv5>div:nth-child(3){border-right:0}
+  .kv5>div:nth-child(-n+3){border-bottom:1px solid var(--rule)}
+  .base{grid-template-columns:130px minmax(0,1fr)}
+  .base>div:last-child{grid-column:1 / -1;border-left:0;border-top:1px solid var(--rule)}
+  .steps{grid-template-columns:repeat(2,1fr)}
+  .steps>div{border-right:1px solid var(--rule)!important;border-bottom:1px solid var(--rule)!important}
+  .steps>div:nth-child(2n){border-right:0!important}
+  .fly{grid-template-columns:repeat(3,1fr)}
+  .fly>div{border-bottom:1px solid var(--rule)}
+  .term{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .term>div:last-child{grid-column:1 / -1}
+  .term>div:nth-child(3){border-right:0}
+  .als{grid-template-columns:1fr 1fr}
+  .al:nth-child(2n){border-right:0}
+  .al:nth-child(-n+2){border-bottom:1px solid var(--rule)}
+}
+@media (max-width:1000px){
+  .battle{grid-template-columns:minmax(0,1fr)}
+  .log{border-left:0;border-top:1px solid var(--rule)}
+  .log ol{max-height:260px}
+}
+@media (max-width:1100px){
+  .nav{grid-template-columns:1fr auto}
+  .brand{border-right:0}
+  .tabs{grid-column:1 / -1;grid-row:2;display:flex;border-top:1px solid var(--rule)}
+  .tabs a{flex:1 0 92px}
+}
+@media (max-width:760px){
+  .hero-copy{padding:24px 20px 6px}
+  .battle{margin:12px}
+  .terr{min-height:0;padding:9px}
+  .terr .bonus{display:none}
+  .terr b{font-size:13px}
+  .terr .st{position:static;align-self:flex-start}
+  .steps{grid-template-columns:minmax(0,1fr)}
+  .steps>div{border-right:0!important}
+  .units{grid-template-columns:1fr 1fr}
+  .units>div{border-right:1px solid var(--rule)!important;border-bottom:1px solid var(--rule)!important}
+  .units>div:nth-child(2n){border-right:0!important}
+  .term{grid-template-columns:minmax(0,1fr)}
+  .term>div{border-right:0;border-bottom:1px solid var(--rule)}
+  .term .seg{flex-direction:row}
+}
+@media (max-width:700px){
+  .wrap{padding:10px}
+  .two,.fly,.als{grid-template-columns:minmax(0,1fr)}
+  .fly>div,.al{border-right:0!important}
+  .al{border-bottom:1px solid var(--rule)}
+  .map{gap:5px;padding:5px}
+  .feed{grid-template-columns:1fr 1fr}
+  .feed>div{border-bottom:1px solid var(--rule)}
+  .feed>div:nth-child(2n){border-right:0}
+  .feed>div:nth-child(3n){border-right:1px solid var(--rule)}
+  .feed>div:nth-child(6n){border-right:0}
+  .kv5{grid-template-columns:1fr 1fr}
+  .kv5>div{border-right:1px solid var(--rule)!important;border-bottom:1px solid var(--rule)}
+  .kv5>div:nth-child(2n){border-right:0!important}
+  .splitkeys{grid-template-columns:1fr}
+  .splitkeys>div{border-right:0;border-bottom:1px solid var(--rule)}
+  .squares{grid-template-columns:repeat(25,1fr)}
+  .big b{font-size:70px}
+  .brand{padding:8px 12px;gap:8px}
+  .brand .tank{width:60px}
+  .brand b{font-size:19px}
+  .walletcell{padding:10px 12px}
+  .walletcell .btn{padding:9px 10px;font-size:12.5px;gap:7px}
+  .base{grid-template-columns:minmax(0,1fr)}
+  .base>div+div{border-left:0;border-top:1px solid var(--rule)}
+  .base .tank{max-width:150px}
+}
+@media (prefers-reduced-motion:reduce){
+  .btn:active:not([disabled]){transform:none}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="sprites"></defs></svg>
+
+<div class="wrap">
+  <header class="top panel">
+    <div class="nav">
+      <a class="brand" href="#trenches" aria-label="Mobilize home">
+        <svg class="tank" viewBox="0 0 95 35" shape-rendering="crispEdges" aria-hidden="true"><use href="#tk"/></svg>
+        <span><b>Mobilize</b><small>$MOBILIZE</small></span>
+      </a>
+      <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+      <div class="walletcell">
+        <button class="btn lime" id="walletBtn" data-act="wallet" aria-haspopup="true"><i class="dot"></i><span>Connect wallet</span></button>
+        <div class="menu panel" id="walletMenu" hidden></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="view" tabindex="-1"></main>
+
+  <footer>
+    <span>Mobilize. Deploy tanks. Mobilize armies. Conquer the trenches.</span>
+    <span>Battles are entirely virtual. Creator-fee revenue depends on actual trading activity, not battle victories.</span>
+  </footer>
+</div>
+
+<div id="overlay"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ---------- logo pixel grid ---------- */
+const TANK = [".....................kkkkkkkkkk................................................................", ".....................kllllLLLLk................................................................", ".....................kllllLLLLk....................................................LL..........", ".....................kgggG..kkk....................................................LL..........", ".....................kkkkkkkkkkkkkkkk..........................................L...............", ".....................kkkkkkkkkkkkkkkkk.........................................L...............", "...................kkwwwwwwwwwwwwwwwwwk............................wwwwwww.....................", "..................kkkwwkkkwwwwwwwwwwwwkkkk.........................wwwwwww............ll.......", "...............wwwwwwwokkkwwwwwwwwwwwwwkwwwkkk.G..................wwwkkwwwkwwww.......ll.......", "..............wwkkkkkkwwwkwwwkkkkkkkwwwkkkkkkwwwwk.............wwwkkkkwwkkkkkk...LLL...........", "..............wkkkkkkkwwwkwwwkkkkkkkwwwkkkkkwwwwwkk...........wwwwkkkkwwkkkkkk...LLL...........", "............wwoooooookLLLkwwwkkkkkkkwwwwkkGGwwkkkkkwwwwwwwwwkwwwwwkwwkwwkklLLLLL...............", "...........wwooooooookLLLkwwwkkkkkkkwwwwkkllwwkkwwkwwwwwwwwwkwGGoGkwwkwwkklLLwLL..LLLLLLLLL....", "...........woooooooookLLLkwwwkkkkkkkwwwwkkllwwkkwwkooooooookkoooookookwwkklLLwwL..LLLLLLLLLL.L.", ".........wwooooooooookLLLkwwwkkkkkkkwwwwkkllwwkkLLkoooooooo.kooooGkookwwkklLLwwL...............", "........wwwooooooooookLLkkwwwkkkkkkkkgwwkkllwwkkLLkGGGGGGGGkkG....kGGkwwkklLLLLL...............", "........wooooooooooookLLkkwwwkkkkkkkkwwwkkllwwkkkkkkkkkkkkkkkkggwwkkkkwwkkkkkk.................", ".......kGkkkk.......kkLLkkwwwwwwwwwwwwwwkkkkwwwwkkk...........ggwwkkkkwwkkkkkk...LL............", ".......kGwkkk........kLLkkwwwkGGGGGGkwwwkkwkwwwwwk................wwwkkwwwkwwww..LL............", "......kkwwwwwwwwwwwwwkkkkkwwkkGGGGGGkwwwkkkkkkkkk.................wwwwwwww.gww........LL.......", ".......kwwwwwwwwwwww.kkkkkkkkkkkkkkkkwkkkkkk...kkkkk...............wwwwwww............LL.......", "......wkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkww.kkkkk...........................................", "....wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwkwwwwkwwwkkk......................L...............", "....wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwkkkkkkkwwwwwk....................LL...............", "..wwwwkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkwwwwkkkkkwwwwww.....................................", "..wwwwkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkwwwwkkkggkkkwww.....................................", "wwwwkkkkkLLLLLkkkkkkkklllllkkkkkkkLLLLLkkkkkkwwwwkGGGkkwwww......................ll............", "wwwkkkkkkLLLLLkkkkkkkklllllkkkkkkkLLLLLkkkkkkkwwwkGGGkkkwww......................ll............", "wwwkkkkkkLLLLLkkkkkkkklllllkkkkkkkLLLLLkkkkkkkwwwk..Gkkkwww....................................", "wwwwkkkkkLLLLLkkkkkkkklllllkkkkkkkLLLLLkkkkkkwwwwk..kkkwwww....................................", ".wwwwkkkkLLLLkkkkkkkkklllkkkkkkkkkkkkkkkkkkkwwwwwk.kkkwwwww....................................", "..wwwwkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkwwwwkkkkkkwwww......................................", "....wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwkkkkkkkwww........................................", "....wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwkkkkkkkwww........................................", "..............................................................................................."];
+
+/* ---------- config ---------- */
+const DAY = 86400, HOUR = 3600;
+const CFG = {
+  RPC: 'https://api.mainnet-beta.solana.com', // swap for your own RPC (Helius, Triton…) when you deploy
+  X: 'https://x.com/Mobilizedotwtf',
+  SUPPLY: 1000, MINT0: 0.25, MINT1: 1.25,
+  OPER: 0.60, BURN: 0.25, OPS: 0.15,
+  RENT_OWNER: 0.90, RENT_BURN: 0.10, SALE_ROYALTY: 0.05,
+  ALLY_SHARE: 0.05, MAX_UNITS: 8, BASE_RATE: 1 / 240,
+  BATTLE_CD: 2 * HOUR, MISSION_CD: 30 * 60, INTEL_H: 3,
+  PRICE0: 0.0000012, TOKEN_SUPPLY: 1e9,
+  START_T: 2 * DAY + 9 * HOUR,
+  OTHER_RATE: 3 / 1440
+};
+const UT = [
+  { k: 'inf', name: 'Infantry', fn: 'Researches emerging token narratives', eff: '+25% launch rate per level', pow: 1, cost: 2000 },
+  { k: 'light', name: 'Light Tank', fn: 'Launches individual tokens', eff: '+1 launch slot', pow: 3, cost: 6000 },
+  { k: 'heavy', name: 'Heavy Tank', fn: 'Operates multiple token projects', eff: '+2 launch slots', pow: 6, cost: 15000 },
+  { k: 'art', name: 'Artillery', fn: 'Coordinates marketing campaigns', eff: '+8% trading life per level', pow: 4, cost: 8000 },
+  { k: 'recon', name: 'Recon Drone', fn: 'Scans on-chain activity and sentiment', eff: '+6% coin output per level', pow: 1, cost: 5000 },
+  { k: 'cmd', name: 'Command Tank', fn: 'Coordinates autonomous AI divisions', eff: '+10% to the whole army per level (one per army)', pow: 5, cost: 25000 }
+];
+const U = Object.fromEntries(UT.map(u => [u.k, u]));
+const TERR = [
+  { k: 'ai', name: 'AI Front', bonus: 'Launch rate +15%' },
+  { k: 'meme', name: 'Meme Front', bonus: 'Coin output +10%' },
+  { k: 'defi', name: 'DeFi Front', bonus: 'Trading life +10%' },
+  { k: 'koth', name: 'KOTH', bonus: 'Coin output +15%' },
+  { k: 'nml', name: 'No Man’s Land', bonus: 'No bonus. A buffer between fronts' },
+  { k: 'pairs', name: 'New Pairs', bonus: '+1 launch slot' },
+  { k: 'bond', name: 'Bonding', bonus: 'Better graduation odds' },
+  { k: 'mig', name: 'Migration', bonus: 'Trading life +15%' },
+  { k: 'hq', name: 'Trench HQ', bonus: 'Battle strength +15%' }
+];
+const ALS = [{ id: 1, name: 'Iron Legion' }, { id: 2, name: 'Lime Brigade' }, { id: 3, name: 'Trench Rats' }, { id: 4, name: 'Bonding Corps' }];
+const MISSIONS = [
+  { k: 'recon', name: 'Reconnaissance', short: 'Discover narratives', txt: f => `Scan ${f} for emerging narratives and prepare an intelligence report. Your next launches get a momentum boost for ${CFG.INTEL_H} hours.` },
+  { k: 'deploy', name: 'Deployment', short: 'Launch token projects', txt: f => `Launch a token project themed on ${f} into a free launch slot.` },
+  { k: 'conquest', name: 'Conquest', short: 'Simulated territory battle', txt: f => `Engage the garrison holding ${f} in a simulated battle. Win to take control and its bonus.` }
+];
+const DURS = [{ h: 1, name: '1 hour', off: 0 }, { h: 24, name: '1 day', off: 0.10 }, { h: 168, name: '1 week', off: 0.25 }];
+const NARR = { a: ['Capybara','Frog','Goose','Hamster','Penguin','Raccoon','Otter','Pigeon','Axolotl','Walrus','Tank','Trench','Bunker','Sarge','Medic','Private','Major','Recon','Salvo','Flank'], b: ['Council','Summer','Army','Corps','Rally','Squad','Unit','Brigade','Front','Line','Fort','Camp','Club','Crew','Union','Patrol','Regiment','Company','Battalion','Guard'] };
+
+/* ---------- utils ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss(r = Math.random){ let u = 0, v = 0; while (!u) u = r(); while (!v) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+const pick = (arr, r = Math.random) => arr[Math.floor(r() * arr.length)];
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const fmtSol = x => { x = +x || 0; return x >= 100 ? x.toFixed(1) : x >= 1 ? x.toFixed(2) : x >= 0.01 ? x.toFixed(3) : x > 0 ? x.toFixed(4) : '0'; };
+const fmtTok = x => { x = +x || 0; if (x >= 1e9) return (x/1e9).toFixed(2) + 'B'; if (x >= 1e6) return (x/1e6).toFixed(x >= 1e7 ? 1 : 2) + 'M'; if (x >= 1e3) return (x/1e3).toFixed(x >= 1e4 ? 0 : 1) + 'k'; return Math.round(x) + ''; };
+const pad2 = n => String(n).padStart(2, '0');
+function ago(t){ const s = S.t - t; if (s < 60) return 'just now'; if (s < HOUR) return Math.floor(s / 60) + ' min ago'; if (s < DAY) return `${Math.floor(s / HOUR)} h ${Math.floor(s % HOUR / 60)} min ago`; return Math.floor(s / DAY) + ' d ago'; }
+function left(t){ const s = Math.max(0, t - S.t); if (s < HOUR) return Math.max(1, Math.ceil(s / 60)) + ' min'; if (s < DAY) return `${Math.floor(s / HOUR)} h ${Math.floor(s % HOUR / 60)} min`; return `${Math.floor(s / DAY)} d ${Math.floor(s % DAY / HOUR)} h`; }
+const short = a => a ? a.slice(0, 4) + '…' + a.slice(-4) : '';
+const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const randAddr = r => Array.from({ length: 44 }, () => B58[Math.floor(r() * 58)]).join('');
+const mintPrice = n => CFG.MINT0 + (CFG.MINT1 - CFG.MINT0) * (Math.min(n, CFG.SUPPLY) - 1) / (CFG.SUPPLY - 1);
+const price = () => CFG.PRICE0 * (1 + S.burned / CFG.TOKEN_SUPPLY * 40);
+const r50 = x => Math.max(50, Math.round(x / 50) * 50);
+const upCost = u => r50(U[u.type].cost * 0.6 * u.lvl);
+const unitValue = u => r50(U[u.type].cost * (0.6 + 0.4 * u.lvl));
+const unitRent = u => r50(U[u.type].cost / 40 * (0.6 + 0.4 * u.lvl));
+
+/* ---------- sprites ---------- */
+(function(){
+  const pal = { k: '#16160F', w: '#E6E2D6', L: '#ACF032', l: '#8CB93C', o: '#697D3C', g: '#787A6C', G: '#50543F' };
+  let r = ''; TANK.forEach((row, y) => { let x = 0; while (x < row.length) { const ch = row[x]; if (pal[ch]) { const s = x; while (x < row.length && row[x] === ch) x++; r += `<rect x="${s}" y="${y}" width="${x - s}" height="1" fill="${pal[ch]}"/>`; } else x++; } });
+  document.getElementById('sprites').innerHTML = `<g id="tk">${r}</g>`;
+})();
+const tankSVG = (extra = '') => `<svg class="tank" viewBox="0 0 95 35" shape-rendering="crispEdges" role="img" aria-label="Tank"><use href="#tk"/>${extra}</svg>`;
+function pix(rows){
+  const h = rows.length, w = Math.max(...rows.map(r => r.length)); let r = '';
+  rows.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#') r += `<rect x="${x}" y="${y}" width="1" height="1"/>`; else if (c === 'l') r += `<rect class="l" x="${x}" y="${y}" width="1" height="1"/>`; else if (c === 'o') r += `<rect class="o" x="${x}" y="${y}" width="1" height="1"/>`; }));
+  return `<svg class="pix" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+const UICO = {
+  inf: pix(['..###..','.#ooo#.','#######','..#l#..','.#####.','..#.#..','.##.##.']),
+  light: pix(['...###.....','..#lll####.','.#######...','###########','#.l..l..l.#','.#########.']),
+  heavy: pix(['..#####......','.#ooooo######','#############','#############','#.l..l..l..l#','.###########.']),
+  art: pix(['.........##','.......##..','.....##....','...#####...','..#ooo#....','#########..','.#.l.l.#...']),
+  recon: pix(['##.....##','.#######.','...#l#...','..#####..','.#.....#.']),
+  cmd: pix(['....l......','...lll.....','..######...','.#ooooo####','###########','#.l..l..l.#','.#########.'])
+};
+const TICO = {
+  ai: pix(['..###..','.#####.','.#l#l#.','.#####.','..#.#..','.#####.']),
+  meme: pix(['#llll..','#lllll.','#llll..','#......','#......','#......']),
+  defi: pix(['#######','#.lll.#','#.lll.#','.#.l.#.','..#.#..','...#...']),
+  koth: pix(['l.l.l.l','#l#l#l#','#######','#.lll.#','#######']),
+  nml: pix(['l..#..l','.l.#.l.','..###..','###l###','..###..','.l.#.l.']),
+  pairs: pix(['#.....#','.#...#.','..#.#..','...l...','..#.#..','.#...#.']),
+  bond: pix(['......#','.....l#','...l.l.','..l.l..','.l.....','#######']),
+  mig: pix(['#.#.#.#','#######','#.###.#','#.#l#.#','#######']),
+  hq: pix(['..lll..','.l###l.','..#l#..','..#l#..','.#####.'])
+};
+const ICO = {
+  trenches: pix(['#.#.#.#.#','.#.#.#.#.','#########','.l..l..l.','#########']),
+  deploy: pix(['..l....','..ll...','..l....','#######','#.###.#','#######']),
+  army: UICO.light,
+  armory: pix(['#########','#.#.#.#.#','#l#l#l#l#','#.#.#.#.#','#########']),
+  rent: pix(['.###.....','#...#....','#.l.#####','#...#.#.#','.###.....']),
+  ally: pix(['#.....#','##...##','.##.##.','..###..','.##l##.','##...##']),
+  how: pix(['###...###','#l##.##l#','#..#.#..#','#.##.##.#','#..#.#..#','###.#.###']),
+  docs: pix(['######..','#....##.','#.ll..##','#......#','#.####.#','#......#','#.####.#','########']),
+  coin: pix(['..###..','.#lll#.','#ll#ll#','#l###l#','#ll#ll#','.#lll#.','..###..'])
+};
+
+/* ---------- state ---------- */
+const KEY = 'mobilize-state-v1', KEYW = 'mobilize-wallet-v1';
+let S, bById = new Map(), uById = new Map();
+function reindex(){ bById = new Map(S.bases.map(b => [b.id, b])); uById = new Map(S.units.map(u => [u.id, u])); }
+function feedPush(x){ x.t = S.t; S.feed.unshift(x); if (S.feed.length > 60) S.feed.length = 60; }
+function logPush(html){ S.log.unshift({ html, t: S.t }); if (S.log.length > 40) S.log.length = 40; }
+const unitsOf = b => S.units.filter(u => u.base === b.id);
+const pw = (b, k) => unitsOf(b).filter(u => u.type === k).reduce((a, u) => a + u.lvl, 0);
+const cnt = (b, k) => unitsOf(b).filter(u => u.type === k).length;
+const holds = (b, k) => !!(S.terr[k] && S.terr[k].owner === b.id);
+const cmdM = b => 1 + 0.1 * Math.min(3, pw(b, 'cmd'));
+const slotsOf = b => cnt(b, 'light') + 2 * cnt(b, 'heavy') + (holds(b, 'pairs') ? 1 : 0);
+const rateOf = b => CFG.BASE_RATE * (1 + 0.25 * pw(b, 'inf')) * cmdM(b) * (holds(b, 'ai') ? 1.15 : 1);
+const strengthOf = b => unitsOf(b).reduce((a, u) => a + U[u.type].pow * u.lvl, 0) * cmdM(b) * (holds(b, 'hq') ? 1.15 : 1) * (b.al ? 1.15 : 1);
+const intelOn = b => b.intel && b.intel.until > S.t;
+const bName = b => b ? (isMine(b) ? `your base #${b.id}` : `Base #${b.id}`) : 'nobody';
+const hourly = b => b.rv / Math.max(6, Math.min(168, (S.t - b.t) / HOUR));
+
+function newUnit(type, lvl, owner, user, base){ const u = { id: S.nextUnit++, type, lvl, owner, user, base: base ? base.id : null, sale: 0, rl: null, rent: null, t: S.t }; S.units.push(u); uById.set(u.id, u); return u; }
+function addOther(r){
+  const n = S.bases.length + 1; if (n > CFG.SUPPLY) return null;
+  const fee = mintPrice(n), owner = randAddr(r);
+  const b = { id: n, owner, user: false, live: 0, count: 0, unclaimed: 0, own: 0, rv: 0, al: r() < 0.7 ? 1 + Math.floor(r() * 4) : null, contrib: 0, cd: 0, mcd: 0, intel: null, t: S.t };
+  S.bases.push(b); bById.set(b.id, b);
+  const lv = () => 1 + (r() < 0.35 ? 1 : 0) + (r() < 0.08 ? 1 : 0);
+  newUnit('light', lv(), owner, false, b);
+  for (let i = 0, m = Math.floor(r() * 3); i < m; i++) newUnit('inf', lv(), owner, false, b);
+  if (r() < 0.35) newUnit('heavy', lv(), owner, false, b);
+  if (r() < 0.4) newUnit('art', lv(), owner, false, b);
+  if (r() < 0.45) newUnit('recon', lv(), owner, false, b);
+  if (r() < 0.15) newUnit('cmd', lv(), owner, false, b);
+  S.burnSol += fee * 0.5; S.burned += fee * 0.5 / price(); S.ops += fee * 0.5;
+  return b;
+}
+function addLoose(r){
+  const u = newUnit(pick(['inf', 'light', 'light', 'heavy', 'art', 'recon', 'recon', 'cmd'], r), 1 + (r() < 0.3 ? 1 : 0) + (r() < 0.06 ? 1 : 0), randAddr(r), false, null);
+  if (r() < 0.5) u.sale = r50(unitValue(u) * (0.8 + r() * 0.5)); else u.rl = { price: r50(unitRent(u) * (0.8 + r() * 0.5)), share: pick([0.05, 0.1, 0.15], r) };
+}
+function launch(b, front){
+  if (b.live >= slotsOf(b)) return false;
+  const a = pick(NARR.a), nb = pick(NARR.b);
+  const fm = (1 + 0.06 * pw(b, 'recon')) * cmdM(b) * (holds(b, 'meme') ? 1.1 : 1) * (holds(b, 'koth') ? 1.15 : 1) * (intelOn(b) ? b.intel.m : 1);
+  const lm = (1 + 0.08 * pw(b, 'art')) * cmdM(b) * (holds(b, 'defi') ? 1.1 : 1) * (holds(b, 'mig') ? 1.15 : 1);
+  const owned = TERR.filter(t => holds(b, t.k) && t.k !== 'nml' && t.k !== 'hq');
+  const fr = front || (owned.length ? pick(owned).name : pick(['AI Front', 'Meme Front', 'DeFi Front', 'New Pairs']));
+  const c = { id: S.nextCoin++, base: b.id, tick: (a.slice(0, 4) + nb.slice(0, 1 + Math.floor(Math.random() * 3))).toUpperCase(), front: fr, t0: S.t, F: Math.exp(Math.log(0.075) + 1.3 * gauss()) * fm, L: Math.exp(Math.log(120) + 0.9 * gauss()) * lm, fees: 0, alive: true, grad: false };
+  c.gradAt = c.F > (holds(b, 'bond') ? 4 : 5) ? c.F * 0.3 : -1;
+  S.coins.push(c); b.live++; b.count++; S.launches++;
+  feedPush({ k: 'launch', base: b.id, tick: c.tick, front: fr }); S.ver++;
+  if (isMine(b) && S.speed <= 60) toast(`Base #${b.id} launched $${c.tick} on ${fr}`);
+  return true;
+}
+function battle(b, tk, bonus = 1){
+  const t = S.terr[tk], def = t.owner ? bById.get(t.owner) : null;
+  const atk = strengthOf(b) * bonus * (0.8 + Math.random() * 0.4), dv = (t.gar || 4) * (0.8 + Math.random() * 0.4);
+  b.cd = S.t + CFG.BATTLE_CD; t.hit = S.t;
+  const T = TERR.find(x => x.k === tk).name;
+  if (t.owner === b.id) { t.gar = Math.max(t.gar, strengthOf(b) * 0.7); logPush(`<b>${esc(bName(b))}</b> reinforced ${T}`); S.ver++; return 'hold'; }
+  if (atk > dv) {
+    logPush(`<b>${esc(bName(b))}</b> captured ${T}${def ? ` from ${esc(bName(def))}` : ''}`);
+    t.owner = b.id; t.gar = strengthOf(b) * 0.7; t.since = S.t; S.battles++; S.ver++;
+    if (def && isMine(def)) toast(`You lost ${T} to Base #${b.id}`);
+    return 'win';
+  }
+  t.gar = Math.max(1, t.gar - atk * 0.25);
+  logPush(`<i>${esc(bName(b))}</i> was repelled at ${T}${def ? ` by ${esc(bName(def))}` : ''}`); S.battles++; S.ver++;
+  return 'lose';
+}
+function pay(c, fee){
+  c.fees += fee;
+  S.burnSol += fee * CFG.BURN; S.burned += fee * CFG.BURN / price(); S.ops += fee * CFG.OPS;
+  const b = bById.get(c.base); if (!b) return;
+  let op = fee * CFG.OPER;
+  if (b.al) { const cut = op * CFG.ALLY_SHARE; op -= cut; S.al[b.al - 1].tre += cut; S.al[b.al - 1].contrib += cut; b.contrib += cut; }
+  if (b.user) for (const u of unitsOf(b)) if (u.rent && u.rent.user) op -= op * u.rent.share;
+  b.unclaimed += op; b.own += op; b.rv += op;
+}
+function step(dm){
+  const t0 = S.t; S.t += dm * 60;
+  if (S.bases.length < CFG.SUPPLY && Math.random() < dm * CFG.OTHER_RATE) { addOther(Math.random); S.ver++; }
+  if (Math.random() < dm / 150 && S.units.filter(u => !u.user && !u.base && (u.sale || u.rl)).length < 14) { addLoose(Math.random); S.ver++; }
+  for (const b of S.bases) {
+    if (slotsOf(b) > b.live && Math.random() < dm * rateOf(b) * Math.sqrt(Math.max(1, slotsOf(b))) * (isMine(b) && !b.count ? 6 : 1)) launch(b);
+    if (!b.user && S.t >= b.cd && Math.random() < dm / 2600) {
+      const targets = TERR.filter(t => S.terr[t.k].owner !== b.id && !(S.terr[t.k].owner && bById.get(S.terr[t.k].owner)?.al && bById.get(S.terr[t.k].owner).al === b.al));
+      const tgt = targets.filter(t => (S.terr[t.k].gar || 4) < strengthOf(b) * 1.3);
+      if (tgt.length) battle(b, pick(tgt).k);
+    }
+  }
+  for (const k in S.terr) { const t = S.terr[k]; if (t.owner) t.gar *= Math.exp(-0.03 * dm / 60); }
+  for (const u of S.units) {
+    if (u.rent && S.t >= u.rent.until) {
+      if (u.rent.user) { if (u.base) toast(`Your rental of ${U[u.type].name} #${u.id} ended and it returned to its owner`); u.base = null; }
+      u.rent = null; S.ver++;
+    }
+    if (u.user && isMine(u) && u.rl && !u.rent && !u.base && Math.random() < dm / 500) {
+      const d = pick(DURS), cost = u.rl.price * d.h * (1 - d.off);
+      u.rent = { who: randAddr(Math.random), user: false, until: S.t + d.h * HOUR, share: u.rl.share }; S.wal.mob += cost * CFG.RENT_OWNER; S.burned += cost * CFG.RENT_BURN;
+      toast(`${U[u.type].name} #${u.id} rented for ${d.name}: +${fmtTok(cost * CFG.RENT_OWNER)} $MOBILIZE`); S.ver++;
+    }
+    if (u.user && u.rent && !u.rent.user) S.unitUn += dm / 60 * 0.003 * u.rent.share * u.lvl * U[u.type].pow / 3;
+    if (u.user && u.sale && !u.base && Math.random() < dm / 400 * Math.max(0.05, Math.min(3, unitValue(u) / u.sale))) {
+      S.wal.mob += u.sale * (1 - CFG.SALE_ROYALTY); S.burned += u.sale * CFG.SALE_ROYALTY; toast(`${U[u.type].name} #${u.id} sold for ${fmtTok(u.sale)} $MOBILIZE`);
+      u.user = false; u.owner = randAddr(Math.random); u.sale = 0; S.ver++;
+    } else if (!u.user && u.sale && Math.random() < dm / 5000) { u.sale = 0; S.ver++; }
+  }
+  for (const c of S.coins) {
+    if (!c.alive) continue;
+    const a0 = Math.max(0, (t0 - c.t0) / 60), a1 = Math.max(0, (S.t - c.t0) / 60);
+    const fee = c.F * (Math.exp(-a0 / c.L) - Math.exp(-a1 / c.L));
+    if (fee > 0) pay(c, fee);
+    if (!c.grad && c.gradAt > 0 && c.fees >= c.gradAt) { c.grad = true; S.ver++; }
+    if (a1 > 3 * c.L) { c.alive = false; const b = bById.get(c.base); if (b) b.live = Math.max(0, b.live - 1); S.ver++; }
+  }
+  if (Math.floor(S.t / (12 * HOUR)) !== Math.floor(t0 / (12 * HOUR))) {
+    for (const al of S.al) {
+      const members = S.bases.filter(b => b.al === al.id), tot = members.reduce((a, b) => a + b.contrib, 0), pot = al.tre * 0.8;
+      if (tot > 0 && pot > 0) { for (const b of members) { const share = pot * b.contrib / tot; if (isMine(b)) { S.alUn += share; toast(`${al.name} paid you ${fmtSol(share)} SOL from its treasury`); } b.contrib = 0; } al.tre -= pot; al.paid += pot; }
+    }
+    S.ver++;
+  }
+  const decay = Math.exp(-dm * 60 / (7 * DAY)); for (const b of S.bases) b.rv *= decay;
+  if (Math.floor(S.t / HOUR) !== Math.floor(t0 / HOUR)) S.coins = S.coins.filter(c => c.alive || c.grad || c.t0 > S.t - 10 * HOUR || bById.get(c.base)?.user);
+}
+function advance(minutes){ while (minutes > 0) { const d = Math.min(5, minutes); step(d); minutes -= d; } }
+function newWorld(){
+  S = { v: 1, t: CFG.START_T - 2 * DAY, speed: 60, bases: [], units: [], coins: [], feed: [], log: [], terr: {}, al: ALS.map(a => ({ id: a.id, tre: 0, contrib: 0, paid: 0 })),
+    burned: 0, burnSol: 0, ops: 0, launches: 0, battles: 0, unitUn: 0, alUn: 0, wal: { sol: 30, mob: 200000 }, nextUnit: 1, nextCoin: 1, ver: 0 };
+  bById = new Map(); uById = new Map();
+  const r = mulberry(149);
+  for (let i = 0; i < 34; i++) addOther(r);
+  for (let i = 0; i < 12; i++) addLoose(r);
+  TERR.forEach((t, i) => { const own = i % 3 === 1 && i !== 4 ? null : (t.k === 'nml' || t.k === 'mig') ? null : pick(S.bases, r); S.terr[t.k] = { owner: own ? own.id : null, gar: own ? strengthOf(own) * 0.7 : 4, hit: 0, since: S.t }; });
+  advance(2 * 24 * 60);
+  S.feed = S.feed.slice(0, 40);
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function load(){
+  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s && s.v === 1 && Array.isArray(s.bases)) { S = s; reindex(); return; } } } catch (e) {}
+  newWorld();
+}
+
+/* ---------- wallet (Wallet Standard + injected providers, validated with @solana/web3.js) ---------- */
+const W = { list: [], addr: null, name: null, entry: null, kind: null, balance: null };
+const isMine = x => !!(x && x.user && W.addr && x.owner === W.addr);
+const isRenting = u => !!(u && u.rent && u.rent.user && W.addr && u.rent.who === W.addr);
+const usable = u => (isMine(u) && !(u.rent && !u.rent.user)) || isRenting(u);
+function addWallet(x){ if (!W.list.some(w => w.name.toLowerCase() === x.name.toLowerCase())) W.list.push(x); }
+const wsApi = { register: (...ws) => { ws.forEach(w => { try { if (w.features && w.features['standard:connect'] && (w.chains || []).some(c => String(c).startsWith('solana:'))) addWallet({ name: w.name, icon: w.icon, kind: 'standard', w }); } catch (e) {} }); return () => {}; } };
+try {
+  window.addEventListener('wallet-standard:register-wallet', ev => { try { ev.detail(wsApi); } catch (e) {} });
+  window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', { detail: wsApi }));
+} catch (e) {}
+function detectInjected(){
+  const c = [['Phantom', window.phantom && window.phantom.solana], ['Solflare', window.solflare], ['Backpack', window.backpack], ['Solana wallet', window.solana]];
+  for (const [n, p] of c) {
+    if (!p || typeof p.connect !== 'function') continue;
+    const name = p.isPhantom ? 'Phantom' : p.isSolflare ? 'Solflare' : n;
+    if (!W.list.some(w => w.name.toLowerCase().startsWith(name.toLowerCase()))) addWallet({ name, icon: null, kind: 'injected', p });
+  }
+}
+function validAddr(a){
+  try { if (window.solanaWeb3 && solanaWeb3.PublicKey) return new solanaWeb3.PublicKey(a).toBase58(); } catch (e) { return null; }
+  return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a) ? a : null;
+}
+async function connectEntry(entry, silent){
+  let addr = null;
+  if (entry.kind === 'standard') {
+    const w = entry.w;
+    if (silent) { if (w.accounts && w.accounts.length) addr = w.accounts[0].address; else return false; }
+    else { const r = await w.features['standard:connect'].connect(); const acc = (r && r.accounts && r.accounts.length ? r.accounts : w.accounts)[0]; addr = acc && acc.address; }
+    try { w.features['standard:events'] && w.features['standard:events'].on('change', ({ accounts }) => { if (accounts && accounts.length) setWallet(accounts[0].address, entry); else clearWallet(); }); } catch (e) {}
+  } else {
+    const p = entry.p;
+    const r = await p.connect(silent ? { onlyIfTrusted: true } : undefined);
+    const pk = (r && r.publicKey) || p.publicKey; addr = pk && pk.toString();
+    try { p.on && p.on('accountChanged', pk => { if (pk) setWallet(pk.toString(), entry); else clearWallet(); }); } catch (e) {}
+  }
+  if (!addr) throw new Error('The wallet returned no account.');
+  setWallet(addr, entry);
+  return true;
+}
+function setWallet(addr, entry){
+  const ok = validAddr(addr);
+  if (!ok) { toast('That wallet returned an invalid Solana address.'); return; }
+  W.addr = ok; W.name = entry ? entry.name : 'Guest wallet'; W.entry = entry || null; W.kind = entry ? entry.kind : 'guest'; W.balance = null;
+  try { localStorage.setItem(KEYW, JSON.stringify({ name: W.name, kind: W.kind, addr: W.kind === 'guest' ? W.addr : null })); } catch (e) {}
+  for (const b of S.bases) if (b.user) b.owner = W.addr;
+  for (const u of S.units) { if (u.user) u.owner = W.addr; if (u.rent && u.rent.user) u.rent.who = W.addr; }
+  paintWallet(); S.ver++; render(true);
+  if (W.kind !== 'guest') fetchBalance();
+}
+async function fetchBalance(){
+  if (!window.solanaWeb3 || !W.addr) return;
+  try {
+    const conn = new solanaWeb3.Connection(CFG.RPC, 'confirmed');
+    const lamports = await Promise.race([conn.getBalance(new solanaWeb3.PublicKey(W.addr)), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 6000))]);
+    W.balance = lamports / solanaWeb3.LAMPORTS_PER_SOL;
+  } catch (e) { W.balance = 'unavailable'; }
+  paintWallet();
+}
+async function clearWallet(){
+  const e = W.entry;
+  try { if (e && e.kind === 'standard' && e.w.features['standard:disconnect']) await e.w.features['standard:disconnect'].disconnect(); if (e && e.kind === 'injected' && e.p.disconnect) await e.p.disconnect(); } catch (err) {}
+  Object.assign(W, { addr: null, name: null, entry: null, kind: null, balance: null });
+  try { localStorage.removeItem(KEYW); } catch (err) {}
+  $('#walletMenu').hidden = true; paintWallet(); S.ver++; render(true);
+}
+function paintWallet(){
+  const b = $('#walletBtn');
+  if (W.addr) { b.className = 'btn connected'; b.innerHTML = `<i class="dot"></i><span>${short(W.addr)}</span>`; b.setAttribute('aria-label', `Wallet ${W.addr}, open menu`); }
+  else { b.className = 'btn lime'; b.innerHTML = `<i class="dot"></i><span>Connect wallet</span>`; b.setAttribute('aria-label', 'Connect wallet'); }
+  if (W.addr) {
+    const bal = W.kind === 'guest' ? fmtSol(S.wal.sol) + ' SOL' : W.balance == null ? 'Checking…' : W.balance === 'unavailable' ? 'Unavailable' : fmtSol(W.balance) + ' SOL';
+    $('#walletMenu').innerHTML = `<div class="rows"><div><label>Wallet</label><b>${esc(W.name)}</b></div><div><label>Address</label><b>${short(W.addr)}</b></div><div><label>Balance</label><b>${bal}</b></div><div><label>$MOBILIZE</label><b>${fmtTok(S.wal.mob)}</b></div></div>
+      <div class="mitems"><button data-act="copyAddr">Copy address</button>${W.kind !== 'guest' ? `<a href="https://solscan.io/account/${W.addr}" target="_blank" rel="noopener">View on Solscan</a>` : ''}<button data-act="disconnect">Disconnect</button></div>`;
+  }
+}
+function openWalletModal(){
+  detectInjected();
+  const items = W.list.map((w, i) => `<button class="wopt" data-act="pickWallet" data-i="${i}">${w.icon ? `<img src="${esc(w.icon)}" alt="">` : `<span class="ph-ico"></span>`}<span>${esc(w.name)}</span><em>Detected</em></button>`).join('');
+  modal(`<section class="panel modal" role="dialog" aria-modal="true" aria-labelledby="wt">
+    <h2 class="ph" id="wt">${ICO.ally} Connect a Solana wallet <button class="x" data-act="close" aria-label="Close">×</button></h2>
+    <div class="wlist">
+      ${items || `<p class="small" style="margin:0">No Solana wallet found in this browser. Install one, then reload this page.</p>
+        <a class="wopt" href="https://phantom.app/download" target="_blank" rel="noopener"><span class="ph-ico"></span>Get Phantom</a>
+        <a class="wopt" href="https://solflare.com/download" target="_blank" rel="noopener"><span class="ph-ico"></span>Get Solflare</a>
+        <a class="wopt" href="https://backpack.app/downloads" target="_blank" rel="noopener"><span class="ph-ico"></span>Get Backpack</a>`}
+      <button class="wopt" data-act="guestWallet"><span class="ph-ico" style="background:var(--lime)"></span><span>Continue as guest</span></button>
+      <p class="small" style="margin:4px 0 0">Connecting shares your public address only.</p>
+    </div></section>`);
+}
+async function eagerConnect(){
+  let saved = null; try { saved = JSON.parse(localStorage.getItem(KEYW) || 'null'); } catch (e) {}
+  if (!saved) return;
+  if (saved.kind === 'guest' && saved.addr) { setWallet(saved.addr, null); return; }
+  detectInjected();
+  const entry = W.list.find(w => w.name === saved.name);
+  if (entry) { try { await connectEntry(entry, true); } catch (e) {} }
+}
+
+/* ---------- the trench map ---------- */
+function mapHTML(){
+  const mx = Math.max(10, ...TERR.map(t => S.terr[t.k].gar || 0));
+  return `<div class="map" role="list" aria-label="The trench warfare map">${TERR.map(t => {
+    const st = S.terr[t.k], o = st.owner ? bById.get(st.owner) : null, mine = o && isMine(o), cont = S.t - (st.hit || 0) < 3 * HOUR;
+    const status = !o ? '<span class="tag ghost st">Neutral</span>' : cont ? '<span class="tag red st">Contested</span>' : `<span class="tag ${mine ? 'lime' : ''} st">Controlled</span>`;
+    return `<div class="terr${mine ? ' mine' : ''}${cont ? ' cont' : ''}" role="listitem">${status}<div class="th">${TICO[t.k]}</div><b>${t.name}</b><span class="who">${o ? (mine ? 'You, base #' + o.id : 'Base #' + o.id + (o.al ? ' · ' + ALS[o.al - 1].name : '')) : 'Unclaimed'}</span><span class="bonus">${t.bonus}</span><div class="gar" title="Garrison ${Math.round(st.gar || 0)}"><s style="width:${clamp((st.gar || 0) / mx * 100, 3, 100).toFixed(0)}%"></s></div></div>`;
+  }).join('')}</div>`;
+}
+function logHTML(){ return `<ol>${S.log.slice(0, 14).map(l => `<li>${l.html}<span>${ago(l.t)}</span></li>`).join('') || '<li>No battles yet.</li>'}</ol>`; }
+
+/* ---------- views ---------- */
+const TABS = [['trenches','Trenches',ICO.trenches],['deploy','Deploy',ICO.deploy],['army','My army',ICO.army],['armory','Armory',ICO.armory],['rentals','Rentals',ICO.rent],['alliances','Alliances',ICO.ally],['how','How it works',ICO.how],['docs','Docs',ICO.docs]];
+let tab = 'trenches';
+const M = { dur: 1, type: 'all' };
+const ORD = { unit: 'light', front: 'pairs', mission: 'recon' };
+const LST = { id: 0, mode: 'sale', mult: 1, share: 0.1 };
+const myBases = () => W.addr ? S.bases.filter(isMine) : [];
+const myUnits = () => W.addr ? S.units.filter(u => isMine(u) || isRenting(u)) : [];
+const unTotal = () => myBases().reduce((a, b) => a + b.unclaimed, 0) + (W.addr ? S.unitUn + S.alUn : 0);
+const LIVE = {
+  burned: () => fmtTok(S.burned),
+  live: () => String(S.coins.filter(c => c.alive).length),
+  un: id => fmtSol(bById.get(+id)?.unclaimed) + ' SOL',
+  myUn: () => fmtSol(unTotal()) + ' SOL',
+  claimAll: () => 'Collect all · ' + fmtSol(unTotal()) + ' SOL',
+  ago: t => ago(+t),
+  left: t => left(+t)
+};
+function kv(label, val, k){ return `<div><label>${label}</label><b${k ? ` data-k="${k}"` : ''}>${val}</b></div>`; }
+const lvlPips = l => `<span class="lvl" aria-label="Level ${l} of 3">${[0, 1, 2].map(i => `<i class="${i < l ? 'on' : ''}"></i>`).join('')}</span>`;
+
+let latestSnap = null, latestAt = 0;
+function vTrenches(){
+  const n = S.bases.length, nowR = performance.now();
+  if (!latestSnap || nowR - latestAt > 30000) { latestSnap = S.feed.filter(f => f.k === 'launch').slice(0, 6); latestAt = nowR; }
+  const held = TERR.filter(t => S.terr[t.k].owner).length;
+  return `<div class="grid-hero"><div class="col">
+  <section class="panel">
+    <h2 class="ph">${ICO.trenches} Status <small>the trenches right now</small></h2>
+    <div class="pad">
+      <label>Military bases</label>
+      <div class="big"><b>${n}</b><span>/ ${CFG.SUPPLY.toLocaleString('en-US')}</span></div>
+      <div class="kv4">
+        ${kv('Base price', fmtSol(mintPrice(n + 1)) + ' SOL')}
+        ${kv('Fronts held', held + ' / 9')}
+        ${kv('Coins trading', S.coins.filter(c => c.alive).length, 'live')}
+        ${kv('$MOBILIZE burned', fmtTok(S.burned), 'burned')}
+      </div>
+      <button class="btn lime wide" data-go="deploy">Establish a base</button>
+    </div>
+  </section>
+  <section class="panel">
+    <h2 class="ph">${ICO.coin} $MOBILIZE <small>token</small></h2>
+    <div class="kv2"><div><label>Project</label><b>Mobilize</b></div><div><label>Ticker</label><b>$MOBILIZE</b></div></div>
+    ${CFG.X ? `<div class="btnrow"><a class="btn" href="${esc(CFG.X)}" target="_blank" rel="noopener">Follow @Mobilizedotwtf on X</a></div>` : ''}
+  </section>
+  </div>
+  <section class="panel hero">
+    <h2 class="ph">${ICO.trenches} The trench warfare map <small>nine fronts, live</small></h2>
+    <div class="hero-copy">
+      <h1>Deploy tanks. Mobilize armies. <em>Conquer the trenches.</em></h1>
+      <p>Every base is an NFT commanding an autonomous AI army. Its tanks and troops find narratives and launch coins on pump.fun, while armies battle for virtual fronts that grant in-game bonuses. Creator fees go back to the base.</p>
+    </div>
+    <div class="battle"><div id="mapwrap">${mapHTML()}</div><div class="log"><h3>Battle log</h3><div id="logwrap">${logHTML()}</div></div></div>
+    <p class="mapnote">Illustrative in-game territories, not actual ownership or control of pump.fun markets.</p>
+  </section>
+  </div>
+  <section class="panel mt">
+    <h2 class="ph">${ICO.docs} Latest launches <small>coins the armies just deployed</small><button class="link end" data-go="armory">Armory</button></h2>
+    ${latestSnap.length ? `<div class="feed">${latestSnap.map(x => `<div>${UICO.light}<b>$${esc(x.tick)}</b><p>Base #${x.base} · ${esc(x.front)}</p><span class="ago" data-k="ago:${x.t}">${ago(x.t)}</span></div>`).join('')}</div>`
+      : `<div class="empty">${tankSVG()}<span>No launches yet.</span></div>`}
+  </section>
+  <section class="panel mt">
+    <h2 class="ph">${ICO.how} How it works <small>seven steps</small><button class="link end" data-go="how">All the rules</button></h2>
+    ${stepsHTML()}
+  </section>`;
+}
+function stepsHTML(){
+  const st = [
+    [ICO.deploy, 'Establish a base', 'Buy a virtual military headquarters, a tradable NFT.'],
+    [UICO.light, 'Deploy tanks', 'AI-powered tanks find emerging narratives and launch coins on pump.fun.'],
+    [UICO.inf, 'Mobilize troops', 'Assemble tanks, infantry and support units into one army.'],
+    [ICO.trenches, 'Enter the trenches', 'Armies fight simulated battles for virtual fronts.'],
+    [TICO.koth, 'Capture territory', 'Each front you hold grants an in-game bonus.'],
+    [ICO.coin, 'Collect war spoils', '60% of each coin’s creator fees goes to your base.'],
+    [UICO.heavy, 'Expand your army', 'Reinvest in more units, upgrades and alliances.']
+  ];
+  return `<div class="steps">${st.map((x, i) => `<div>${x[0]}<span class="n">${pad2(i + 1)}</span><h3>${x[1]}</h3><p>${x[2]}</p></div>`).join('')}</div>`;
+}
+
+function vDeploy(){
+  const n = S.bases.length + 1, fee = mintPrice(n), can = W.addr && n <= CFG.SUPPLY && S.wal.sol >= fee;
+  return `<div class="grid-2"><div class="col">
+  <section class="panel step">
+    <h2 class="ph"><b>Military units</b> <small>every unit can be upgraded, traded or rented</small></h2>
+    <div class="pad"><h3>Build your army</h3>
+      <p>An army holds up to ${CFG.MAX_UNITS} units. Tanks open launch slots; the rest make it faster, stronger and longer-lasting. Every unit adds to battle strength.</p>
+      <div class="units">${UT.map(u => `<div>${UICO[u.k]}<b>${u.name}</b><span>${u.fn}</span><em>${u.eff}</em></div>`).join('')}</div>
+      <p class="note">Battle victories unlock in-game bonuses, not revenue. Creator fees depend on actual trading of the coins your army launches.</p>
+    </div>
+  </section>
+  <section class="panel step">
+    <h2 class="ph"><b>Establish</b> <small>${fmtSol(fee)} SOL</small><span class="tag lime end">Now</span></h2>
+    <div class="pad"><h3>Establish base #${Math.min(n, CFG.SUPPLY)}</h3>
+      <p>Half the price buys and burns $MOBILIZE, half funds operations. Your base comes with a Light Tank and an Infantry squad, so it starts launching right away.</p>
+      ${!W.addr ? `<button class="btn dark" data-act="wallet">Connect wallet to deploy</button>`
+        : `<button class="btn dark" data-act="deploy" ${can ? '' : 'disabled'}>Establish base #${n}</button>${S.wal.sol < fee ? `<p class="warn" style="margin:12px 0 0">Not enough SOL in your wallet.</p>` : ''}`}
+    </div>
+  </section></div>
+  <aside class="col">
+    <section class="panel"><h2 class="ph">${ICO.deploy} You get <small>after establishing</small></h2>
+      <div class="youget">${tankSVG()}<div><b>#${Math.min(n, CFG.SUPPLY)}</b><span>Base, Light Tank<br>and an Infantry squad</span></div></div>
+    </section>
+    <section class="panel"><h2 class="ph">${ICO.coin} Summary <small>what moves</small></h2>
+      <div class="rows">
+        ${kv('Base price', fmtSol(fee) + ' SOL')}
+        ${kv('Units included', 'Light Tank, Infantry')}
+        ${kv('Your share of fees', '60%')}
+        ${kv('Wallet $MOBILIZE', fmtTok(S.wal.mob))}
+      </div>
+    </section>
+  </aside></div>`;
+}
+
+function unitCard(u){
+  const b = u.base ? bById.get(u.base) : null, rented = isRenting(u), out = u.rent && !u.rent.user, own = isMine(u);
+  const status = rented ? `Rented in, ${left(u.rent.until)} left` : out ? `Rented out, ${left(u.rent.until)} left` : b ? `With base #${b.id}` : u.sale ? `For sale at ${fmtTok(u.sale)}` : u.rl ? 'Listed for rent' : 'In reserve';
+  const base = myBases()[0];
+  return `<div class="unit"><div class="uh">${UICO[u.type]}<div><h4>${U[u.type].name} #${u.id}</h4>${lvlPips(u.lvl)}</div></div><span class="st">${status}</span>
+    <div class="btns">
+      ${own && !out && u.lvl < 3 ? `<button class="btn sm lime" data-act="upUnit" data-id="${u.id}" ${S.wal.mob < upCost(u) ? 'disabled' : ''}>Upgrade · ${fmtTok(upCost(u))}</button>` : ''}
+      ${b && usable(u) ? `<button class="btn sm" data-act="unassign" data-id="${u.id}">To reserve</button>` : ''}
+      ${!b && usable(u) && !u.sale && !u.rl && base ? `<button class="btn sm" data-act="assign" data-id="${u.id}" ${unitsOf(base).length >= CFG.MAX_UNITS || (u.type === 'cmd' && cnt(base, 'cmd')) ? 'disabled' : ''}>Assign to #${base.id}</button>` : ''}
+      ${own && !b && !out ? (u.sale || u.rl ? `<button class="btn sm" data-act="unlistUnit" data-id="${u.id}">Unlist</button>` : `<button class="btn sm" data-act="listOpen" data-id="${u.id}">Sell or rent out</button>`) : ''}
+    </div></div>`;
+}
+function terminalHTML(b){
+  const avail = ['light', 'heavy', 'recon'].filter(k => cnt(b, k) > 0);
+  if (!avail.includes(ORD.unit)) ORD.unit = avail[0] || 'light';
+  const front = TERR.find(t => t.k === ORD.front), m = MISSIONS.find(x => x.k === ORD.mission);
+  const cdUntil = ORD.mission === 'conquest' ? b.cd : b.mcd, ready = S.t >= (cdUntil || 0);
+  const canDeploy = ORD.mission !== 'deploy' || b.live < slotsOf(b);
+  const order = `${U[ORD.unit].name} → ${front.name} · ${m.name}`;
+  return `<div class="term">
+    <div><label>Deploy unit</label><div class="seg">${['light', 'heavy', 'recon'].map(k => `<button class="chip" data-act="ord" data-key="unit" data-v="${k}" aria-pressed="${ORD.unit === k}" ${cnt(b, k) ? '' : 'disabled'}>${UICO[k]} ${U[k].name}</button>`).join('')}</div></div>
+    <div><label>Target front</label><div class="seg">${TERR.map(t => `<button class="chip" data-act="ord" data-key="front" data-v="${t.k}" aria-pressed="${ORD.front === t.k}">${t.name}</button>`).join('')}</div></div>
+    <div><label>Mission</label><div class="seg">${MISSIONS.map(x => `<button class="chip" data-act="ord" data-key="mission" data-v="${x.k}" aria-pressed="${ORD.mission === x.k}">${x.name}<span style="opacity:.7;font-weight:400"> · ${x.short}</span></button>`).join('')}</div></div>
+    <div class="preview"><label>Mission preview</label><b>${esc(order)}</b><p>${esc(m.txt(front.name))}${ORD.mission === 'conquest' ? ` Your strength: ${Math.round(strengthOf(b) * (ORD.unit === 'heavy' ? 1.2 : 1))}. Garrison: ${Math.round(S.terr[ORD.front].gar || 4)}.` : ''}</p>
+      <div class="btns"><button class="btn sm lime" data-act="execute" data-id="${b.id}" ${ready && avail.length && canDeploy ? '' : 'disabled'}>${!avail.length ? 'No tank or drone' : !ready ? 'Ready in ' + left(cdUntil) : !canDeploy ? 'No free launch slot' : 'Execute order'}</button><button class="btn sm" data-act="copyOrder" data-o="${esc(order + ': ' + m.txt(front.name))}">Copy mobilization order</button></div></div>
+  </div>`;
+}
+function vArmy(){
+  if (!W.addr) return `<section class="panel"><h2 class="ph">${ICO.army} My army</h2>
+    <div class="empty">${tankSVG()}<span>Connect a wallet to command your army.</span><button class="btn lime" data-act="wallet">Connect wallet</button></div></section>`;
+  const bases = myBases(), units = myUnits(), reserve = units.filter(u => !u.base);
+  return `<section class="panel"><h2 class="ph">${ICO.army} My army <small>war spoils wait until you collect them</small></h2>
+    <div class="kv5">
+      <div><label>Bases</label><b>${bases.length}</b></div>
+      <div><label>Units</label><b>${units.length}</b></div>
+      <div><label>Fronts held</label><b>${TERR.filter(t => bases.some(b => holds(b, t.k))).length}</b></div>
+      <div><label>Ready to collect</label><b class="g" data-k="myUn">${LIVE.myUn()}</b></div>
+      <div><label>$MOBILIZE</label><b>${fmtTok(S.wal.mob)}</b></div>
+    </div>
+    <div class="actions">
+      <button class="btn lime" data-act="claimAll" data-k="claimAll">${LIVE.claimAll()}</button>
+      <button class="btn" data-go="armory">Armory</button>
+      <button class="btn" data-go="alliances">Alliances</button>
+      <button class="btn" data-act="buyMob" ${S.wal.sol < 1 ? 'disabled' : ''}>Swap 1 SOL for $MOBILIZE</button>
+    </div>
+  </section>
+  ${bases.length ? bases.map(b => `<section class="panel mt">
+    <h2 class="ph">${tankSVG()} Base #${b.id} <small>${b.al ? ALS[b.al - 1].name : 'No alliance'}${intelOn(b) ? ` · intel active, ${left(b.intel.until)}` : ''}</small></h2>
+    <div class="base" style="border-top:0"><div>${tankSVG()}</div>
+      <div><h3>Strength ${Math.round(strengthOf(b))}</h3>
+        <div class="stats"><div><label>Launch slots in use</label><b>${b.live} / ${slotsOf(b)}</b></div><div><label>Units</label><b>${unitsOf(b).length} / ${CFG.MAX_UNITS}</b></div><div><label>Ready to collect</label><b data-k="un:${b.id}">${LIVE.un(b.id)}</b></div><div><label>Coins launched</label><b>${b.count}</b></div></div>
+        <div class="btns"><button class="btn sm lime" data-act="claim" data-id="${b.id}">Collect</button></div></div>
+      <div><label>Fronts held</label><p class="small" style="margin:0 0 12px">${TERR.filter(t => holds(b, t.k)).map(t => `${t.name} (${t.bonus.toLowerCase()})`).join(', ') || 'None yet. Issue a conquest order below.'}</p>
+        <label>Battle readiness</label><p class="small" style="margin:0">${S.t >= b.cd ? 'Ready for conquest.' : `Regrouping. Ready in <span data-k="left:${b.cd}">${left(b.cd)}</span>.`}</p></div>
+    </div>
+    <h3 class="ph" style="border-top:1px solid var(--rule)">${ICO.trenches} Military command terminal <small>issue mobilization orders</small></h3>
+    ${terminalHTML(b)}
+    <h3 class="ph" style="border-top:1px solid var(--rule)">${UICO.inf} Division <small>${unitsOf(b).length} units</small></h3>
+    <div class="roster">${unitsOf(b).map(unitCard).join('')}</div>
+  </section>`).join('') : `<section class="panel mt"><div class="empty">${tankSVG()}<span>No base yet.</span><button class="btn sm lime" data-go="deploy">Establish a base</button></div></section>`}
+  ${reserve.length ? `<section class="panel mt"><h2 class="ph">${UICO.inf} Reserve <small>units not assigned to a base</small></h2><div class="roster">${reserve.map(unitCard).join('')}</div></section>` : ''}`;
+}
+
+function vArmory(){
+  let list = S.units.filter(u => u.sale && !u.user);
+  if (M.type !== 'all') list = list.filter(u => u.type === M.type);
+  list.sort((a, b) => unitValue(b) / b.sale - unitValue(a) / a.sale);
+  const segb = (v, l) => `<button class="chip" data-act="mt" data-v="${v}" aria-pressed="${M.type === v}">${l}</button>`;
+  return `<section class="panel"><h2 class="ph">${ICO.armory} Armory <small>recruit new units</small></h2>
+    <div class="tw"><table><thead><tr><th></th><th>Unit</th><th>Function</th><th>Effect</th><th class="r">Recruit</th><th></th></tr></thead><tbody>
+    ${UT.map(u => `<tr><td>${UICO[u.k]}</td><td><b>${u.name}</b></td><td>${u.fn}</td><td>${u.eff}</td><td class="r">${fmtTok(u.cost)}</td><td class="r">${W.addr ? `<button class="btn sm lime" data-act="recruit" data-k="${u.k}" ${S.wal.mob < u.cost ? 'disabled' : ''}>Recruit</button>` : ''}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="small" style="margin:0;padding:12px 18px;border-top:1px solid var(--rule)">Recruiting and upgrades are paid in $MOBILIZE and burned. New units join your base if there’s room, or your reserve.</p>
+  </section>
+  <section class="panel mt"><h2 class="ph">${ICO.armory} Unit market <small>units other commanders are selling · ${list.length}</small></h2>
+    <div class="filters"><div class="seg"><span>Type</span>${segb('all', 'All')}${UT.map(u => segb(u.k, u.name)).join('')}</div></div>
+    ${list.length ? `<div class="roster">${list.map(u => `<div class="unit"><div class="uh">${UICO[u.type]}<div><h4>${U[u.type].name} #${u.id}</h4>${lvlPips(u.lvl)}</div></div><span class="st">Seller ${short(u.owner)}</span><div class="btns">${!W.addr ? `<button class="btn sm" data-act="wallet">Connect wallet</button>` : `<button class="btn sm lime" data-act="buyUnit" data-id="${u.id}" ${S.wal.mob < u.sale ? 'disabled' : ''}>Buy · ${fmtTok(u.sale)}</button>`}</div></div>`).join('')}</div>`
+      : `<div class="empty">${tankSVG()}<span>Nothing for sale right now.</span></div>`}
+  </section>`;
+}
+
+function vRentals(){
+  const d = DURS[M.dur];
+  let list = S.units.filter(u => u.rl && !u.user);
+  if (M.type !== 'all') list = list.filter(u => u.type === M.type);
+  list.sort((a, b) => (!!a.rent - !!b.rent) || U[b.type].pow * b.lvl - U[a.type].pow * a.lvl);
+  const segb = (key, act, v, l) => `<button class="chip" data-act="${act}" data-v="${v}" aria-pressed="${String(M[key]) === String(v)}">${l}</button>`;
+  return `<section class="panel"><h2 class="ph">${ICO.rent} Tank rental marketplace <small>${list.length} units for rent · expand without buying</small></h2>
+    <div class="filters">
+      <div class="seg"><span>Rent for</span>${DURS.map((x, i) => segb('dur', 'md', i, x.name + (x.off ? ` (−${x.off * 100}%)` : ''))).join('')}</div>
+      <div class="seg"><span>Type</span>${segb('type', 'mt', 'all', 'All')}${UT.map(u => segb('type', 'mt', u.k, u.name)).join('')}</div>
+    </div>
+    ${list.length ? `<div class="roster">${list.map(u => { const cost = u.rl.price * d.h * (1 - d.off);
+      return `<div class="unit"><div class="uh">${UICO[u.type]}<div><h4>${U[u.type].name} #${u.id}</h4>${lvlPips(u.lvl)}</div></div><span class="st">${fmtTok(u.rl.price)}/h · owner takes ${u.rl.share * 100}% of your fees</span>
+      <div class="btns">${u.rent ? `<button class="btn sm" disabled>Rented, back in ${left(u.rent.until)}</button>` : !W.addr ? `<button class="btn sm" data-act="wallet">Connect wallet</button>` : `<button class="btn sm lime" data-act="rentUnit" data-id="${u.id}" ${S.wal.mob < cost ? 'disabled' : ''}>Rent ${d.name} · ${fmtTok(cost)}</button>`}</div></div>`; }).join('')}</div>`
+      : `<div class="empty">${tankSVG()}<span>Nothing for rent right now.</span></div>`}
+    <p class="small" style="margin:0;padding:12px 18px;border-top:1px solid var(--rule)">While a rented unit serves in your base, its owner takes the agreed share of your base’s creator fees. List your own spare units from My army.</p>
+  </section>`;
+}
+function listModal(id){
+  const u = uById.get(+id); if (!isMine(u)) return;
+  if (LST.id !== u.id) { LST.id = u.id; LST.mode = 'sale'; LST.mult = 1; LST.share = 0.1; }
+  const sp = r50(unitValue(u) * LST.mult), rp = r50(unitRent(u) * LST.mult);
+  modal(`<section class="panel modal" role="dialog" aria-modal="true" aria-labelledby="lt">
+    <h2 class="ph" id="lt">${UICO[u.type]} ${U[u.type].name} #${u.id} <button class="x" data-act="close" aria-label="Close">×</button></h2>
+    <div class="pad">
+      <div class="seg" style="margin-bottom:16px"><button class="chip" data-act="lsMode" data-v="sale" aria-pressed="${LST.mode === 'sale'}">Sell it</button><button class="chip" data-act="lsMode" data-v="rent" aria-pressed="${LST.mode === 'rent'}">Rent it out</button></div>
+      <label>Price</label>
+      <div class="seg" style="margin-bottom:16px">${[[0.8,'Fast'],[1,'Suggested'],[1.3,'Premium']].map(([m, t]) => `<button class="chip" data-act="lsMult" data-v="${m}" aria-pressed="${LST.mult === m}">${t}</button>`).join('')}</div>
+      ${LST.mode === 'rent' ? `<label>Your share of the commander’s fees</label><div class="seg" style="margin-bottom:16px">${[0.05, 0.1, 0.15].map(s => `<button class="chip" data-act="lsShare" data-v="${s}" aria-pressed="${LST.share === s}">${s * 100}%</button>`).join('')}</div>` : ''}
+      <div class="rows" style="border:1px solid var(--rule);margin-bottom:16px">
+        ${LST.mode === 'sale' ? kv('Price', fmtTok(sp) + ' $MOBILIZE') + kv('You receive', fmtTok(sp * 0.95) + ' $MOBILIZE') + kv('Royalty (burned)', '5%')
+          : kv('Price per hour', fmtTok(rp) + ' $MOBILIZE') + kv('You receive', '90% of each payment + ' + LST.share * 100 + '% of fees') + kv('Burned', '10% of each payment')}
+      </div>
+      <button class="btn lime wide" data-act="listSave" data-id="${u.id}" data-sp="${sp}" data-rp="${rp}">${LST.mode === 'sale' ? 'List for sale' : 'List for rent'}</button>
+    </div></section>`);
+}
+
+function vAlliances(){
+  const b = myBases()[0];
+  return `<section class="panel"><h2 class="ph">${ICO.ally} Military alliances <small>combine armies, share intelligence, pool resources</small></h2>
+    <div class="pbody"><p>Members get +15% battle strength and never fight each other’s fronts. Each member contributes ${CFG.ALLY_SHARE * 100}% of its operator fees to the alliance treasury. Every 12 hours, 80% of the treasury is paid back to members by contribution; the rest stays to fund future deployments.</p></div>
+    <div class="als" style="border-top:1px solid var(--rule)">${ALS.map((a, i) => { const st = S.al[i], members = S.bases.filter(x => x.al === a.id), fronts = TERR.filter(t => { const o = bById.get(S.terr[t.k].owner); return o && o.al === a.id; });
+      return `<div class="al"><h3>${a.name}</h3><dl><dt>Bases</dt><dd>${members.length}</dd><dt>Fronts held</dt><dd>${fronts.length}</dd><dt>Treasury</dt><dd>${fmtSol(st.tre)} SOL</dd><dt>Paid out</dt><dd>${fmtSol(st.paid)} SOL</dd><dt>Combined strength</dt><dd>${Math.round(members.reduce((x, m) => x + strengthOf(m), 0))}</dd></dl>
+        ${!W.addr ? '' : !b ? `<button class="btn sm" data-go="deploy">Establish a base first</button>` : b.al === a.id ? `<button class="btn sm" data-act="leaveAl" data-id="${b.id}">Leave</button>` : `<button class="btn sm lime" data-act="joinAl" data-id="${b.id}" data-a="${a.id}">${b.al ? 'Switch to ' + a.name : 'Join'}</button>`}</div>`; }).join('')}</div>
+  </section>`;
+}
+
+function vHow(){
+  const sq = Array.from({ length: 100 }, (_, i) => `<i class="${i < 60 ? 'sq-a' : i < 85 ? 'sq-b' : 'sq-c'}"></i>`).join('');
+  return `<section class="panel"><h2 class="ph">${ICO.how} How it works <small>autonomous AI armies in the trenches</small></h2>${stepsHTML()}</section>
+  <div class="two mt">
+    <section class="panel"><h2 class="ph">${UICO.light} Military units</h2>
+      <div class="tw"><table><thead><tr><th></th><th>Unit</th><th>Function</th></tr></thead><tbody>${UT.map(u => `<tr><td>${UICO[u.k]}</td><td><b>${u.name}</b></td><td>${u.fn}</td></tr>`).join('')}</tbody></table></div>
+    </section>
+    <section class="panel"><h2 class="ph">${ICO.trenches} The fronts</h2>
+      <div class="tw"><table><thead><tr><th></th><th>Front</th><th>Bonus to the holder</th></tr></thead><tbody>${TERR.map(t => `<tr><td>${TICO[t.k]}</td><td><b>${t.name}</b></td><td>${t.bonus}</td></tr>`).join('')}</tbody></table></div>
+      <p class="note" style="margin:16px 18px 18px">Illustrative in-game territories, not actual ownership or control of pump.fun markets.</p>
+    </section>
+  </div>
+  <section class="panel mt"><h2 class="ph">${ICO.trenches} Battles and mobilization orders</h2>
+    <div class="pbody"><p>A conquest order pits your army’s strength against the front’s garrison, with some luck either way. Win and the front is yours, garrisoned at 70% of your strength; lose and you dent the garrison. Garrisons weaken slowly over time. After a battle your army regroups for 2 hours.</p>
+    <p>Reconnaissance boosts the momentum of your next launches for ${CFG.INTEL_H} hours (more with a Recon Drone). Deployment launches a coin straight into a free slot. Battles are entirely virtual, and creator-fee revenue depends on actual trading, not victories.</p></div>
+  </section>
+  <section class="panel mt"><h2 class="ph">${ICO.coin} Where every creator fee goes <small>100 squares, one per percent</small></h2>
+    <div class="split"><div class="squares" aria-hidden="true">${sq}</div></div>
+    <div class="splitkeys">
+      <div><span class="k"><i class="sq-a"></i>Your base</span><b>60%</b><p>Less any alliance contribution and rented-unit shares.</p></div>
+      <div><span class="k"><i class="sq-b"></i>Buy and burn</span><b>25%</b><p>A defined share of actual protocol revenue that buys and burns $MOBILIZE.</p></div>
+      <div><span class="k"><i class="sq-c"></i>Operations</span><b>15%</b><p>Pays for the AI agents and the keeper.</p></div>
+    </div>
+  </section>
+  <section class="panel mt"><h2 class="ph">${ICO.trenches} The flywheel <small>creator-fee revenue depends on actual trading activity</small></h2>
+    <div class="fly">
+      <div><span class="n">1</span><b>Deploy armies</b><span>Users buy tanks, troops and bases.</span></div>
+      <div><span class="n">2</span><b>Mobilize forces</b><span>AI units find narratives and launch coins.</span></div>
+      <div><span class="n">3</span><b>Capture territories</b><span>Armies compete for virtual fronts and bonuses.</span></div>
+      <div><span class="n">4</span><b>Collect creator fees</b><span>Coins earn from real trading activity.</span></div>
+      <div><span class="n">5</span><b>Expand infrastructure</b><span>Revenue supports units, rentals and upgrades.</span></div>
+      <div><span class="n">6</span><b>Buybacks and burns</b><span>A defined share of actual protocol revenue buys and burns $MOBILIZE.</span></div>
+    </div>
+  </section>`;
+}
+
+const DOCS = [
+  ['overview','Overview', () => `<p>Mobilize is a Solana launchpad game of autonomous AI armies. Each <strong>base</strong> is an NFT that commands an army of <strong>units</strong>. Tanks launch coins on pump.fun with the base as creator; the army also fights simulated battles for nine virtual <strong>fronts</strong> that grant in-game bonuses. 60% of each coin’s creator fees goes to the base.</p><p>Battles are entirely virtual. There are no real-world military operations, and the fronts are illustrative in-game territories, not ownership or control of pump.fun markets.</p>`],
+  ['deploying','Deploying', () => `<p>The base price rises evenly from 0.25 SOL for #1 to 1.25 SOL for #1,000: <code>0.25 + 1.0 × (n − 1) / 999</code>. Half buys and burns $MOBILIZE, half funds operations. Every base starts with a Light Tank and an Infantry squad.</p>`],
+  ['units','Units', () => `<div class="tw"><table><thead><tr><th>Unit</th><th>Effect</th><th class="r">Strength</th><th class="r">Recruit</th></tr></thead><tbody>${UT.map(u => `<tr><td><strong>${u.name}</strong></td><td>${u.eff}</td><td class="r">${u.pow} per level</td><td class="r">${fmtTok(u.cost)}</td></tr>`).join('')}</tbody></table></div>
+    <p>An army holds up to ${CFG.MAX_UNITS} units and one Command Tank. Units go up to level 3. An army needs at least one tank to launch.</p>
+    <h4>Launch rules</h4><ul><li>No real people’s names or likeness, and no implied endorsement.</li><li>No existing brands, and no ticker that is already live on pump.fun.</li><li>No promises of returns in any coin or its promotion.</li><li>Every coin description says which base launched it.</li></ul>`],
+  ['battles','Battles', () => `<p>Battle strength is the sum of each unit’s strength times its level, raised by a Command Tank, Trench HQ and alliance membership. Each battle rolls both sides between 80% and 120% of their strength. A won front is garrisoned at 70% of the winner’s strength; garrisons lose about 3% an hour. After a battle an army regroups for 2 hours.</p>`],
+  ['alliances','Alliances', () => `<p>Alliance members contribute ${CFG.ALLY_SHARE * 100}% of operator fees to the treasury and gain +15% battle strength. Every 12 hours, 80% of the treasury is distributed to members by contribution.</p>`],
+  ['rentals','Rentals and trading', () => `<p>Owners can sell spare units for $MOBILIZE (5% royalty burned) or rent them by the hour, day or week (90% to the owner, 10% burned). While a rented unit serves in a base, its owner takes the agreed 5%, 10% or 15% of that base’s creator fees.</p>`],
+  ['fees','Fees', () => `<div class="tw"><table><thead><tr><th>To</th><th class="r">Share</th></tr></thead><tbody><tr><td>The base, less alliance and rental shares</td><td class="r">60%</td></tr><tr><td>$MOBILIZE buy and burn</td><td class="r">25%</td></tr><tr><td>Operations</td><td class="r">15%</td></tr></tbody></table></div>`],
+  ['token','$MOBILIZE', () => `<p>$MOBILIZE is the pad’s token, launched on pump.fun. It pays for units, upgrades and rentals. A defined share of actual protocol revenue funds buybacks and burns.</p>`],
+  ['faq','FAQ', () => [
+      ['Do battle wins earn money?','No. Fronts grant in-game bonuses. Revenue comes only from real trading of the coins your army launches.'],
+      ['Who is the creator of the coins?','The base. Its address is set as the coin’s creator on pump.fun, and the fee split is locked in the same transaction.'],
+      ['What happens to my units if I sell my base?','Units assigned to it go with it. Move any you want to keep to your reserve first.']
+    ].map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join('')],
+  ['risks','Risks', () => `<ul><li>Most coins on pump.fun stop trading within days.</li><li>Creator-fee revenue depends on actual trading activity, not battle victories or guaranteed returns.</li><li>pump.fun can change its fee rates or creator fee program at any time.</li><li>Smart contracts and autonomous agents can have bugs even after testing.</li></ul>`]
+];
+function vDocs(){
+  return `<div class="docs"><nav class="panel toc" aria-label="Docs contents"><h2 class="ph">${ICO.docs} Docs <small>contents</small></h2>
+    <ol>${DOCS.map((d, i) => `<li><button data-act="docjump" data-id="${d[0]}"><span>${pad2(i + 1)}</span>${d[1]}</button></li>`).join('')}</ol></nav>
+    <div class="col">${DOCS.map(d => `<section class="panel doc" id="doc-${d[0]}"><h2 class="ph">${d[1]}</h2><div class="body">${d[2]()}</div></section>`).join('')}</div></div>`;
+}
+
+/* ---------- render ---------- */
+let lastVer = -1, lastTab = '', lastRender = 0, lastFull = 0;
+const VIEWS = { trenches: vTrenches, deploy: vDeploy, army: vArmy, armory: vArmory, rentals: vRentals, alliances: vAlliances, how: vHow, docs: vDocs };
+function render(force){
+  const now = performance.now();
+  const dynamic = !(tab === 'how' || tab === 'docs');
+  if (!force && tab === lastTab && (!dynamic || S.ver === lastVer || now - lastRender < 2000)) return;
+  if (!force && tab === 'trenches' && now - lastFull < 12000) { lastVer = S.ver; lastRender = now; const m = $('#mapwrap'); if (m) m.innerHTML = mapHTML(); const l = $('#logwrap'); if (l) l.innerHTML = logHTML(); return; }
+  if (!force && tab === 'army' && now - lastFull < 6000) return;
+  lastVer = S.ver; lastTab = tab; lastRender = now; lastFull = now;
+  const y = window.scrollY;
+  $('#view').innerHTML = VIEWS[tab]();
+  window.scrollTo(0, y);
+}
+function paintTabs(){ $('#tabs').innerHTML = TABS.map(([k, label, icon], i) => `<a href="#${k}"${tab === k ? ' aria-current="page"' : ''}>${icon}<span>${label}</span><em>${i + 1}</em></a>`).join(''); }
+function updateLive(){ document.querySelectorAll('[data-k]').forEach(el => { const [k, a] = el.dataset.k.split(':'); const f = LIVE[k]; if (!f) return; const v = f(a); if (el.textContent !== v) el.textContent = v; }); }
+function route(){ const h = location.hash.replace('#', ''); tab = VIEWS[h] ? h : 'trenches'; paintTabs(); render(true); updateLive(); }
+
+/* ---------- overlays ---------- */
+let lastFocus = null;
+function modal(html){ if (!$('#overlay').innerHTML) lastFocus = document.activeElement; $('#overlay').innerHTML = `<div class="scrim" data-act="scrim">${html}</div>`; const f = $('#overlay').querySelector('[aria-pressed="true"],button,a'); f && f.focus(); }
+function closeModal(){ $('#overlay').innerHTML = ''; LST.id = 0; lastFocus && lastFocus.focus && lastFocus.focus(); }
+function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; const box = $('#toasts'); box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => t.remove(), 3800); }
+
+/* ---------- actions ---------- */
+const after = () => { S.ver++; render(true); updateLive(); };
+document.addEventListener('click', async ev => {
+  const go = ev.target.closest('[data-go]');
+  if (go) { if ($('#overlay').innerHTML) closeModal(); location.hash = '#' + go.dataset.go; return; }
+  const a = ev.target.closest('[data-act]');
+  if (!a) { if (!ev.target.closest('.walletcell')) $('#walletMenu').hidden = true; return; }
+  const act = a.dataset.act;
+  if (act === 'scrim') { if (ev.target === a) closeModal(); return; }
+  switch (act) {
+    case 'close': closeModal(); break;
+    case 'wallet':
+      if (W.addr && a.id === 'walletBtn') { const m = $('#walletMenu'); paintWallet(); m.hidden = !m.hidden; }
+      else openWalletModal();
+      break;
+    case 'pickWallet': {
+      const entry = W.list[+a.dataset.i];
+      a.disabled = true; const em = a.querySelector('em'); if (em) em.textContent = 'Approve in wallet…';
+      try { await connectEntry(entry, false); closeModal(); toast(`Connected ${short(W.addr)}`); }
+      catch (err) { a.disabled = false; if (em) em.textContent = 'Detected'; toast(err && err.message && /reject|denied|cancel/i.test(err.message) ? 'Connection request was declined in the wallet.' : 'Couldn’t connect. Unlock the wallet and try again.'); }
+      break; }
+    case 'guestWallet': setWallet(randAddr(Math.random), null); closeModal(); toast('Connected as guest'); break;
+    case 'disconnect': clearWallet(); toast('Wallet disconnected'); break;
+    case 'copyAddr': try { await navigator.clipboard.writeText(W.addr); toast('Address copied'); } catch (e) { toast(W.addr); } break;
+    case 'deploy': {
+      const n = S.bases.length + 1, fee = mintPrice(n); if (!W.addr || n > CFG.SUPPLY || S.wal.sol < fee) break;
+      S.wal.sol -= fee; S.burnSol += fee * 0.5; S.burned += fee * 0.5 / price(); S.ops += fee * 0.5;
+      const b = { id: n, owner: W.addr, user: true, live: 0, count: 0, unclaimed: 0, own: 0, rv: 0, al: null, contrib: 0, cd: 0, mcd: 0, intel: null, t: S.t };
+      S.bases.push(b); bById.set(b.id, b);
+      newUnit('light', 1, W.addr, true, b); newUnit('inf', 1, W.addr, true, b);
+      save(); toast(`Base #${n} established with a Light Tank and an Infantry squad.`); location.hash = '#army'; after(); break; }
+    case 'ord': ORD[a.dataset.key] = a.dataset.v; render(true); break;
+    case 'copyOrder': try { await navigator.clipboard.writeText(a.dataset.o); toast('Mobilization order copied'); } catch (e) { toast(a.dataset.o); } break;
+    case 'execute': {
+      const b = bById.get(+a.dataset.id); if (!isMine(b)) break;
+      const front = TERR.find(t => t.k === ORD.front);
+      if (ORD.mission === 'recon') { if (S.t < b.mcd) break; b.intel = { until: S.t + CFG.INTEL_H * HOUR, m: ORD.unit === 'recon' ? 1.35 : 1.2 }; b.mcd = S.t + CFG.MISSION_CD; logPush(`<b>${esc(bName(b))}</b> ran reconnaissance on ${front.name}`); toast(`Intel report ready: +${Math.round((b.intel.m - 1) * 100)}% momentum on your launches for ${CFG.INTEL_H} hours`); }
+      else if (ORD.mission === 'deploy') { if (S.t < b.mcd) break; const n = ORD.unit === 'heavy' ? 2 : 1; let k = 0; for (let i = 0; i < n; i++) if (launch(b, front.name)) k++; b.mcd = S.t + CFG.MISSION_CD; if (!k) toast('No free launch slot'); }
+      else { if (S.t < b.cd) break; const res = battle(b, ORD.front, ORD.unit === 'heavy' ? 1.2 : 1); toast(res === 'win' ? `Victory. ${front.name} is yours.` : res === 'hold' ? `${front.name} reinforced.` : `Repelled at ${front.name}. Regroup and try again.`); }
+      after(); break; }
+    case 'claim': { const b = bById.get(+a.dataset.id); if (!isMine(b)) break; const v = b.unclaimed; S.wal.sol += v; b.unclaimed = 0; toast(v > 0 ? `Collected ${fmtSol(v)} SOL` : 'Nothing to collect yet'); after(); break; }
+    case 'claimAll': { let v = S.unitUn + S.alUn; S.unitUn = 0; S.alUn = 0; for (const b of myBases()) { v += b.unclaimed; b.unclaimed = 0; } S.wal.sol += v; toast(v > 0 ? `Collected ${fmtSol(v)} SOL` : 'Nothing to collect yet'); after(); break; }
+    case 'buyMob': if (S.wal.sol >= 1) { const t = 1 / price(); S.wal.sol -= 1; S.wal.mob += t; toast(`Swapped 1 SOL for ${fmtTok(t)} $MOBILIZE`); after(); } break;
+    case 'recruit': { const k = a.dataset.k, cost = U[k].cost; if (!W.addr || S.wal.mob < cost) break; S.wal.mob -= cost; S.burned += cost; const b = myBases()[0]; const room = b && unitsOf(b).length < CFG.MAX_UNITS && !(k === 'cmd' && cnt(b, 'cmd')); const u = newUnit(k, 1, W.addr, true, room ? b : null); toast(`${U[k].name} #${u.id} recruited${room ? ' and assigned to base #' + b.id : ' to your reserve'}`); after(); break; }
+    case 'upUnit': { const u = uById.get(+a.dataset.id); if (!isMine(u) || u.lvl >= 3) break; const c = upCost(u); if (S.wal.mob < c) break; S.wal.mob -= c; S.burned += c; u.lvl++; toast(`${U[u.type].name} #${u.id} is now level ${u.lvl}`); after(); break; }
+    case 'assign': { const u = uById.get(+a.dataset.id), b = myBases()[0]; if (!u || !b || !usable(u) || unitsOf(b).length >= CFG.MAX_UNITS) break; u.base = b.id; after(); break; }
+    case 'unassign': { const u = uById.get(+a.dataset.id); if (!u || !usable(u)) break; u.base = null; after(); break; }
+    case 'listOpen': LST.id = 0; listModal(a.dataset.id); break;
+    case 'lsMode': LST.mode = a.dataset.v; listModal(LST.id); break;
+    case 'lsMult': LST.mult = +a.dataset.v; listModal(LST.id); break;
+    case 'lsShare': LST.share = +a.dataset.v; listModal(LST.id); break;
+    case 'listSave': { const u = uById.get(+a.dataset.id); if (!isMine(u) || u.base) break; if (LST.mode === 'sale') { u.sale = +a.dataset.sp; u.rl = null; } else { u.rl = { price: +a.dataset.rp, share: LST.share }; u.sale = 0; } closeModal(); toast(LST.mode === 'sale' ? `Listed for ${fmtTok(u.sale)} $MOBILIZE` : `Listed for rent at ${fmtTok(u.rl.price)} an hour`); after(); break; }
+    case 'unlistUnit': { const u = uById.get(+a.dataset.id); if (!isMine(u)) break; u.sale = 0; u.rl = null; after(); break; }
+    case 'buyUnit': { const u = uById.get(+a.dataset.id); if (!u || u.user || !u.sale || !W.addr || S.wal.mob < u.sale) break; S.wal.mob -= u.sale; S.burned += u.sale * CFG.SALE_ROYALTY; u.user = true; u.owner = W.addr; u.sale = 0; u.rl = null; const b = myBases()[0]; if (b && unitsOf(b).length < CFG.MAX_UNITS && !(u.type === 'cmd' && cnt(b, 'cmd'))) u.base = b.id; toast(`You bought ${U[u.type].name} #${u.id}${u.base ? ' and assigned it to base #' + u.base : ''}`); after(); break; }
+    case 'rentUnit': { const u = uById.get(+a.dataset.id), d = DURS[M.dur]; if (!u || !u.rl || u.rent || !W.addr) break; const cost = u.rl.price * d.h * (1 - d.off); if (S.wal.mob < cost) break; S.wal.mob -= cost; S.burned += cost * CFG.RENT_BURN; u.rent = { who: W.addr, user: true, until: S.t + d.h * HOUR, share: u.rl.share };
+      const b = myBases()[0]; if (b && unitsOf(b).length < CFG.MAX_UNITS && !(u.type === 'cmd' && cnt(b, 'cmd'))) u.base = b.id; toast(`Rented ${U[u.type].name} #${u.id} for ${d.name}${u.base ? ' and assigned it to base #' + u.base : ''}`); after(); break; }
+    case 'joinAl': { const b = bById.get(+a.dataset.id); if (!isMine(b)) break; b.al = +a.dataset.a; b.contrib = 0; toast(`Base #${b.id} joined ${ALS[b.al - 1].name}`); after(); break; }
+    case 'leaveAl': { const b = bById.get(+a.dataset.id); if (!isMine(b)) break; b.al = null; b.contrib = 0; after(); break; }
+    case 'mt': M.type = a.dataset.v; render(true); break;
+    case 'md': M.dur = +a.dataset.v; render(true); break;
+    case 'docjump': { const el = document.getElementById('doc-' + a.dataset.id); el && el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); break; }
+  }
+  if (act !== 'wallet' && !a.closest('#walletMenu')) $('#walletMenu').hidden = true;
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { if ($('#overlay').innerHTML) closeModal(); $('#walletMenu').hidden = true; } });
+window.addEventListener('hashchange', route);
+
+/* ---------- boot ---------- */
+load();
+S.speed = 60;
+route();
+paintWallet();
+setTimeout(eagerConnect, 500);
+let lastTick = performance.now(), lastSave = 0;
+setInterval(() => {
+  const now = performance.now(), dt = Math.min(2, (now - lastTick) / 1000); lastTick = now;
+  if (S.speed > 0) advance(S.speed * dt / 60);
+  updateLive(); render(false);
+  if (now - lastSave > 5000) { save(); lastSave = now; }
+}, 250);
+window.addEventListener('pagehide', save);
+</script>
+</body>
+</html>
